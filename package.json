@@ -1,0 +1,69 @@
+{
+  "name": "sanaos-desktop",
+  "version": "1.1.1",
+  "private": true,
+  "description": "SanaOS desktop app for Windows",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SanaTG023/Sana.git"
+  },
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis --publish never",
+    "release:win": "electron-builder --win nsis --publish always"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  },
+  "devDependencies": {
+    "electron": "^45.0.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.sanaos.desktop",
+    "productName": "SanaOS",
+    "asar": true,
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "SanaTG023",
+        "repo": "Sana",
+        "releaseType": "release"
+      }
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "desktop/**/*",
+      "kernelos.html",
+      "admin.html",
+      "index.html",
+      "tour.html",
+      "data.js",
+      "manifest.webmanifest",
+      "service-worker.js",
+      "images/**/*",
+      "!images/*.pdf"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/sanaos.ico",
+      "verifyUpdateCodeSignature": false,
+      "artifactName": "SanaOS-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SanaOS"
+    }
+  }
+}

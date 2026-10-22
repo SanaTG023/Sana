@@ -1,0 +1,34 @@
+{
+  "id": "./kernelos.html",
+  "name": "SanaOS",
+  "short_name": "SanaOS",
+  "description": "พื้นที่ทำงาน SanaOS โทนม่วงสำหรับใช้งานบนมือถือและเดสก์ท็อป",
+  "lang": "th",
+  "start_url": "./kernelos.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1d132b",
+  "theme_color": "#211334",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "./images/sanaos-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./images/sanaos-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./images/sanaos-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

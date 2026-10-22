@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Control Panel | Nay journey</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="data.js"></script>
+  <style>
+    :root {
+      --primary: #e8a838;
+      --primary-dark: #c98822;
+      --dark: #123527;
+      --forest: #14432f;
+      --bg: #ebe9e1;
+      --card-bg: #ffffff;
+      --text-dark: #1c1c1a;
+      --text-muted: #77766c;
+      --border: #e6e3d8;
+      --danger: #ef4444;
+      --success: #10b981;
+      --radius-card: 22px;
+      --shadow-card: 0 2px 10px rgba(40, 38, 30, 0.05);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', 'IBM Plex Sans Thai', sans-serif;
+      background: var(--bg); color: var(--text-dark);
+      padding-bottom: 140px; line-height: 1.6;
+    }
+
+    header {
+      background: rgba(255,255,255,0.88); backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--border);
+      padding: 0.7rem 2rem; display: flex; justify-content: space-between;
+      align-items: center; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 6px 18px rgba(40,38,30,0.06); flex-wrap: wrap; gap: 1rem;
+    }
+    .brand-logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+    .brand-icon {
+      width: 42px; height: 42px; background: var(--primary); color: #fff;
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; font-weight: 800;
+    }
+    .brand-title { font-size: 1.25rem; font-weight: 800; color: var(--text-dark); letter-spacing: -0.5px; }
+    .brand-title span { display: block; font-size: 0.75rem; color: var(--primary-dark); font-weight: 700; margin-top: -3px; }
+    
+    .header-btns { display: flex; gap: 0.8rem; align-items: center; }
+    
+    .container { max-width: 1140px; margin: 2rem auto; padding: 0 1.5rem; }
+
+    .page-hdr {
+      background: #ffffff; border-radius: 20px; padding: 1.8rem 2rem;
+      border: 1px solid var(--border); margin-bottom: 1.8rem;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.02); flex-wrap: wrap; gap: 1rem;
+    }
+    .badge-admin {
+      display: inline-block; background: #fef3c7; color: #d97706;
+      font-size: 0.75rem; font-weight: 800; padding: 0.3rem 0.8rem; border-radius: 50px;
+      letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 0.4rem;
+    }
+    .page-title h2 { font-size: 1.6rem; font-weight: 800; color: var(--text-dark); }
+    .page-title p { font-size: 0.88rem; color: var(--text-muted); }
+
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.2rem; margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: #ffffff; border-radius: 16px; border: 1px solid var(--border);
+      padding: 1.4rem 1.6rem; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+    .stat-lbl { font-size: 0.88rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.6rem; }
+    .stat-val { font-size: 2rem; font-weight: 800; color: var(--text-dark); }
+    .stat-val small { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); margin-left: 4px; }
+    .stat-icon { position: absolute; top: 1.4rem; right: 1.4rem; font-size: 1.3rem; opacity: 0.7; }
+
+    .card {
+      background: #ffffff; border-radius: 20px; border: 1px solid var(--border);
+      padding: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+    }
+    .card-hdr {
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 2px solid #f1f5f9; padding-bottom: 1rem; margin-bottom: 1.5rem;
+      flex-wrap: wrap; gap: 0.8rem;
+    }
+    .card-title { font-size: 1.2rem; font-weight: 800; color: var(--text-dark); display: flex; align-items: center; gap: 0.5rem; }
+    .card-subtitle { font-size: 0.85rem; color: var(--text-muted); font-weight: 400; }
+
+    .table-wrap { overflow-x: auto; margin-top: 1rem; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th {
+      background: #f8fafc; padding: 1rem 1.2rem; font-size: 0.85rem; font-weight: 700;
+      color: var(--text-muted); border-bottom: 1px solid var(--border); text-transform: uppercase;
+    }
+    td { padding: 1.2rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 0.92rem; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafa; }
+
+    .tour-thumb-cell { display: flex; align-items: center; gap: 1rem; }
+    .tour-thumb { width: 56px; height: 56px; border-radius: 12px; object-fit: cover; background: #e2e8f0; }
+    .tour-name-th { font-weight: 800; font-size: 0.98rem; color: var(--text-dark); }
+    .tour-name-sub { font-size: 0.82rem; color: var(--text-muted); }
+
+    .badge-cat {
+      background: #f1f5f9; color: #475569; padding: 0.35rem 0.8rem; border-radius: 8px;
+      font-size: 0.82rem; font-weight: 700; display: inline-block;
+    }
+    .price-tag { font-weight: 800; color: var(--primary-dark); font-size: 1.05rem; }
+
+    .status-btn {
+      display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.9rem;
+      border-radius: 50px; font-size: 0.82rem; font-weight: 700; border: none; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .status-btn.active { background: #d1fae5; color: #065f46; }
+    .status-btn.inactive { background: #fee2e2; color: #991b1b; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 0.7rem 1.4rem; border-radius: 12px; font-family: inherit; font-size: 0.9rem;
+      font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-sm { padding: 0.45rem 0.9rem; font-size: 0.82rem; border-radius: 8px; }
+    .btn-primary { background: var(--primary); color: #ffffff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-success { background: var(--success); color: #ffffff; }
+    .btn-danger { background: #fee2e2; color: var(--danger); }
+    .btn-danger:hover { background: var(--danger); color: #ffffff; }
+    .btn-outline { background: #ffffff; border: 1.5px solid var(--border); color: var(--text-dark); }
+    .btn-outline:hover { background: #f8fafc; border-color: #cbd5e1; }
+    
+    .btn-upload {
+      background: #f1f5f9; border: 1.5px dashed #94a3b8; color: var(--text-dark);
+      padding: 0.6rem 1rem; border-radius: 10px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 0.4rem; transition: all 0.2s;
+    }
+    .btn-upload:hover { background: #e2e8f0; border-color: var(--primary); }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 0.88rem; font-weight: 700; color: #475569; }
+    label small { font-weight: 400; color: var(--text-muted); margin-left: 4px; }
+    input[type="text"], input[type="number"], textarea, select {
+      font-family: inherit; font-size: 0.95rem; padding: 0.75rem 1rem;
+      border: 1.5px solid var(--border); border-radius: 12px; background: #fafafc;
+      transition: all 0.2s; color: var(--text-dark);
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none; border-color: var(--primary); background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(232,168,56,0.15);
+    }
+    textarea { min-height: 90px; resize: vertical; }
+
+    .item-card {
+      background: #f8fafc; border: 1.5px solid var(--border); border-radius: 14px;
+      padding: 1.2rem; margin-bottom: 1rem;
+    }
+    .item-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+    .item-num {
+      font-weight: 800; font-size: 0.88rem; color: var(--primary-dark);
+      background: rgba(232,168,56,0.15); padding: 0.25rem 0.75rem; border-radius: 6px;
+    }
+    .img-preview {
+      width: 100%; height: 160px; object-fit: cover; border-radius: 12px;
+      margin-top: 0.6rem; background: #e2e8f0; display: block; border: 1px solid var(--border);
+    }
+    .upload-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.4rem; }
+    .list-row-item { display: flex; gap: 0.6rem; align-items: center; margin-bottom: 0.6rem; }
+    .list-row-item input { flex: 1; }
+
+    .save-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(26, 26, 46, 0.96); backdrop-filter: blur(12px);
+      padding: 1.2rem 2.5rem; display: flex; justify-content: space-between;
+      align-items: center; z-index: 99; box-shadow: 0 -4px 25px rgba(0,0,0,0.18);
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .save-info { color: #e2e8f0; font-size: 0.9rem; font-weight: 500; }
+    .save-actions { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+
+    .toast {
+      position: fixed; top: 90px; right: 25px; background: var(--dark); color: #fff;
+      padding: 1rem 1.6rem; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      z-index: 1000; display: none; align-items: center; gap: 0.6rem;
+      border-left: 5px solid var(--success); font-weight: 600;
+    }
+
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 1002; backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: #fff; border-radius: 20px; padding: 2rem; width: 100%; max-width: 520px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25); animation: scaleUp 0.2s ease;
+    }
+    @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 1.2rem; color: var(--text-dark); }
+    .modal-actions { display: flex; gap: 0.8rem; justify-content: flex-end; margin-top: 1.5rem; }
+    html { scroll-behavior: smooth; scroll-padding-top: 100px; }
+    [hidden] { display: none !important; }
+    .container { max-width: 1240px; }
+    .quick-nav {
+      position: sticky; top: 82px; z-index: 90; display: flex; gap: 0.55rem; align-items: center;
+      overflow-x: auto; padding: 0.65rem; margin: -0.6rem 0 1.4rem; border: 1px solid var(--border);
+      border-radius: 14px; background: rgba(255,255,255,.94); box-shadow: 0 6px 18px rgba(15,23,42,.06);
+      scrollbar-width: thin;
+    }
+    .quick-nav a { flex: 0 0 auto; padding: .48rem .8rem; border-radius: 9px; color: #475569; font-size: .84rem; font-weight: 700; transition: background .2s, color .2s, transform .2s; }
+    .quick-nav a:hover { color: #7c4a06; background: #fff4da; transform: translateY(-1px); }
+    .quick-nav a.active { color: #7c4a06; background: #fff0ce; box-shadow: inset 0 0 0 1px rgba(232,168,56,.25); }
+    header .quick-nav {
+      position: static; flex: 1 1 auto; justify-content: center; overflow: visible; margin: 0;
+      padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none;
+    }
+    header .quick-nav a { color: var(--text-muted); padding: .55rem .8rem; white-space: nowrap; border-radius: 999px; }
+    header .quick-nav a:hover { color: #7c4a06; background: #fff4da; transform: none; }
+    header .quick-nav a.active { color: #7c4a06; background: rgba(232,168,56,.18); box-shadow: inset 0 0 0 1px rgba(232,168,56,.4); border-radius: 999px; }
+    .card { scroll-margin-top: 100px; }
+    .card-hdr { align-items: flex-start; }
+    .card-title { line-height: 1.4; }
+    .tour-tools { display: flex; gap: .65rem; align-items: center; flex-wrap: wrap; margin: .5rem 0 1rem; }
+    .tour-search { min-width: min(100%, 280px); flex: 1; }
+    .tour-count { color: var(--text-muted); font-size: .84rem; font-weight: 600; white-space: nowrap; }
+    .section-note { margin: -.65rem 0 1.25rem; color: var(--text-muted); font-size: .86rem; }
+    .edit-tour-tools { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+    .edit-tour-tools select { max-width: min(360px, 55vw); }
+    .save-info strong { color: #fff; }
+    .btn:active { transform: translateY(1px) scale(.98); }
+    :focus-visible { outline: 3px solid rgba(232,168,56,.45); outline-offset: 2px; }
+    @media (max-width: 700px) {
+      body { padding-bottom: 150px; }
+      header { padding: .8rem 1rem; }
+      .container { margin: 1rem auto; padding: 0 .75rem; }
+      .page-hdr { padding: 1.2rem; }
+      .card { padding: 1.1rem; border-radius: 16px; }
+      header { gap: .65rem; }
+      header .quick-nav { order: 3; flex: 1 0 100%; justify-content: flex-start; overflow-x: auto; margin: 0 -.25rem -.15rem; padding: 0 .25rem; }
+      header .quick-nav a { font-size: .8rem; padding: .55rem .65rem; }
+      .save-bar { padding: .75rem; display: block; }
+      .save-info { font-size: .76rem; margin-bottom: .55rem; }
+      .save-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+      .save-actions .btn { padding: .65rem .45rem; font-size: .78rem; }
+      .edit-tour-tools select { max-width: 100%; width: 100%; }
+      .edit-tour-tools { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+    /* Refined admin workspace */
+    :root {
+      --primary: #d99a32;
+      --primary-dark: #a96e17;
+      --dark: #17382c;
+      --forest: #17382c;
+      --bg: #f3f3ec;
+      --card-bg: #fffefa;
+      --text-dark: #1d2822;
+      --text-muted: #747a70;
+      --border: #e5e7dc;
+      --success: #27845a;
+      --radius-card: 18px;
+      --shadow-card: 0 10px 28px rgba(29, 40, 34, .055);
+    }
+    body { background: radial-gradient(ellipse at 50% -25%, #e1ead7 0, transparent 48%), var(--bg); }
+    header {
+      min-height: 72px; padding: .65rem clamp(1rem, 3vw, 2.4rem);
+      background: rgba(250, 251, 245, .92); border-bottom-color: rgba(221, 225, 211, .9);
+      box-shadow: 0 5px 24px rgba(28, 47, 34, .055);
+    }
+    .brand-icon { border-radius: 13px; box-shadow: 0 5px 12px rgba(169, 110, 23, .2); }
+    .brand-title { letter-spacing: -.65px; }
+    header .quick-nav a { font-size: .85rem; }
+    .container { max-width: 1320px; margin-top: 1.7rem; }
+    .page-hdr {
+      position: relative; overflow: hidden; min-height: 170px; padding: clamp(1.5rem, 3vw, 2.35rem);
+      color: #fff; border: 0; border-radius: 22px;
+      background: linear-gradient(115deg, #17382c 0%, #24563d 58%, #39724c 100%);
+      box-shadow: 0 14px 32px rgba(23, 56, 44, .16);
+    }
+    .page-hdr::after {
+      content: ''; position: absolute; width: 300px; height: 300px; right: 9%; top: -205px;
+      border: 1px solid rgba(255,255,255,.12); border-radius: 50%;
+      box-shadow: 0 0 0 28px rgba(255,255,255,.035), 0 0 0 62px rgba(255,255,255,.025);
+      pointer-events: none;
+    }
+    .page-title, .page-hdr > button { position: relative; z-index: 1; }
+    .badge-admin { background: rgba(247, 197, 105, .17); color: #ffdc9b; letter-spacing: .9px; }
+    .page-title h2 { color: #fff; font-size: clamp(1.45rem, 2.5vw, 1.9rem); letter-spacing: -.5px; }
+    .page-title p { color: rgba(245, 249, 241, .74); margin-top: .2rem; }
+    .page-hdr .btn-primary { background: #edaa39; color: #2e2618; box-shadow: 0 4px 0 #bd7b1d; }
+    .page-hdr .btn-primary:hover { background: #f4bb59; }
+    .stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1.35rem; }
+    .stat-card {
+      min-height: 128px; padding: 1.2rem 1.35rem; border-radius: 17px;
+      box-shadow: var(--shadow-card); transition: transform .2s, box-shadow .2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(29,40,34,.09); }
+    .stat-lbl { font-size: .82rem; letter-spacing: .01em; }
+    .stat-val { font-size: 2.1rem; line-height: 1.15; }
+    .stat-icon { top: 1rem; right: 1rem; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: #f4f2e8; font-size: 1.05rem; }
+    .card { padding: clamp(1.2rem, 2.2vw, 1.8rem); margin-bottom: 1.25rem; border-radius: 19px; box-shadow: var(--shadow-card); }
+    .card-hdr { border-bottom: 1px solid #eceee5; padding-bottom: .9rem; margin-bottom: 1.15rem; }
+    .card-title { font-size: 1.08rem; letter-spacing: -.15px; }
+    .card-subtitle, .section-note { color: #80857b; }
+    .tour-tools { margin-top: .8rem; }
+    .tour-search { max-width: 430px; }
+    input[type="text"], input[type="number"], textarea, select { background: #fcfcf8; border-color: #e0e4d9; border-radius: 10px; }
+    th { background: #f5f6ef; color: #687166; font-size: .77rem; letter-spacing: .045em; }
+    td { border-bottom-color: #eff0e9; }
+    tr:hover td { background: #fafbf6; }
+    .tour-thumb { border-radius: 10px; box-shadow: 0 2px 7px rgba(0,0,0,.08); }
+    .badge-cat { background: #eef1e8; color: #536252; }
+    .save-bar { background: rgba(23, 56, 44, .97); padding: .85rem clamp(1rem, 3vw, 2.5rem); }
+    .save-info { color: #e6eee7; }
+    .btn { border-radius: 10px; }
+    .btn-primary { box-shadow: 0 2px 0 rgba(104, 68, 15, .2); }
+    .toast { background: #17382c; }
+    @media (max-width: 900px) {
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      header .quick-nav { justify-content: flex-start; overflow-x: auto; }
+    }
+    @media (max-width: 700px) {
+      .container { margin-top: 1rem; }
+      .page-hdr { min-height: 0; border-radius: 17px; }
+      .page-hdr .btn { width: 100%; }
+      .stats-grid { gap: .7rem; margin-bottom: 1rem; }
+      .stat-card { min-height: 112px; padding: 1rem; }
+      .stat-val { font-size: 1.7rem; }
+      .stat-icon { top: .8rem; right: .8rem; width: 32px; height: 32px; }
+      .tour-search { max-width: none; }
+    }
+    /* Screenshot-inspired admin shell: calm sage backdrop, app rail, floating workspace */
+    body {
+      min-height: 100vh; padding-bottom: 112px;
+      background:
+        radial-gradient(ellipse at 88% 22%, rgba(144, 168, 112, .24), transparent 28%),
+        radial-gradient(ellipse at 8% 88%, rgba(158, 180, 128, .2), transparent 30%),
+        linear-gradient(140deg, #dce6d0 0%, #edf0e7 45%, #d8e2ce 100%);
+    }
+    header {
+      position: fixed; inset: 0 auto 0 0; z-index: 101; width: 255px; min-height: 100vh;
+      padding: 1.2rem .85rem; flex-direction: column; justify-content: flex-start; align-items: stretch;
+      gap: 1.5rem; flex-wrap: nowrap; background: rgba(246, 247, 239, .91);
+      border-right: 1px solid rgba(99, 119, 89, .18); border-bottom: 0; box-shadow: 5px 0 24px rgba(31, 54, 37, .07);
+    }
+    .brand-logo { padding: .25rem .35rem 1rem; border-bottom: 1px solid #e5e8dd; }
+    .brand-icon { background: #e6a333; }
+    header .quick-nav {
+      position: static; order: 0; width: 100%; flex: 1 1 auto; display: flex; flex-direction: column;
+      justify-content: flex-start; align-items: stretch; gap: .35rem; overflow: visible; margin: 0;
+    }
+    header .quick-nav a {
+      display: flex; align-items: center; min-height: 46px; padding: .65rem .75rem; border-radius: 11px;
+      color: #4c5c4d; white-space: normal; font-size: .84rem;
+    }
+    header .quick-nav a:hover { color: #24432f; background: #e9efe1; }
+    header .quick-nav a.active { color: #24432f; background: #e2ebd9; box-shadow: inset 3px 0 #d99a32; border-radius: 11px; }
+    .header-btns { margin-top: auto; }
+    .header-btns .btn { width: 100%; justify-content: flex-start; border-color: #dfe3d7 !important; background: #fffefa !important; color: #35483a !important; white-space: normal; line-height: 1.35; }
+    .container { width: min(1320px, calc(100% - 295px)); max-width: none; margin: 1.25rem 1.5rem 1.5rem 216px; padding: 0; }
+    .page-hdr {
+      min-height: 148px; color: var(--text-dark); background: rgba(247, 248, 242, .93); border: 1px solid rgba(255,255,255,.85);
+      border-radius: 21px; box-shadow: 0 14px 38px rgba(39, 59, 40, .12); backdrop-filter: blur(8px);
+    }
+    .page-hdr::after { border-color: rgba(95, 126, 83, .11); box-shadow: 0 0 0 28px rgba(95,126,83,.035), 0 0 0 62px rgba(95,126,83,.025); }
+    .badge-admin { background: #e9efdf; color: #627952; }
+    .page-title h2 { color: #18271f; }
+    .page-title p { color: #70786d; }
+    .page-hdr .btn-primary { background: #e9a22e; color: #302719; }
+    .stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .stat-card, .card { background: rgba(255, 255, 251, .95); backdrop-filter: blur(5px); }
+    .save-bar { left: 255px; }
+    .toast { top: 24px; }
+    @media (max-width: 900px) {
+      header {
+        position: sticky; inset: auto; width: auto; min-height: 0; padding: .65rem 1rem;
+        flex-direction: row; align-items: center; gap: .65rem; flex-wrap: wrap;
+      }
+      .brand-logo { padding: 0; border: 0; }
+      header .quick-nav { order: 3; flex: 1 0 100%; flex-direction: row; align-items: center; overflow-x: auto; }
+      header .quick-nav a { min-height: 0; }
+      .header-btns { margin-top: 0; }
+      .header-btns .btn { width: auto; }
+      .container { width: auto; max-width: 1240px; margin: 1rem auto; padding: 0 1rem; }
+      .save-bar { left: 0; }
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 540px) {
+      .header-btns .btn { font-size: 0; padding: .6rem; }
+      .header-btns .btn::first-letter { font-size: 1rem; }
+      .container { padding: 0 .7rem; }
+      .page-hdr { padding: 1.15rem; }
+      .stats-grid { gap: .6rem; }
+    }
+    /* Balance the workspace against the fixed navigation rail */
+    body { padding-bottom: 160px; }
+    .container {
+      width: min(1320px, calc(100vw - 319px));
+      margin: 1.25rem 0 1.5rem calc(255px + (100vw - 255px - min(1320px, calc(100vw - 319px))) / 2);
+      padding: 0;
+    }
+    .page-hdr { min-height: 136px; padding: clamp(1.25rem, 2vw, 1.8rem); }
+    .page-hdr::after { right: 6%; }
+    .card { padding: clamp(1.15rem, 1.8vw, 1.65rem); }
+    .save-bar { min-height: 68px; padding-top: .7rem; padding-bottom: .7rem; }
+    @media (max-width: 900px) {
+      body { padding-bottom: 160px; }
+      .container { width: auto; max-width: 1240px; margin: 1rem auto; padding: 0 1rem; }
+      .page-hdr { min-height: 0; }
+    }
+    @media (max-width: 540px) {
+      body { padding-bottom: 190px; }
+      .save-bar { min-height: 0; }
+    }
+    /* Give the page title band more horizontal breathing room */
+    .page-hdr { width: calc(100% + 160px); transform: translateX(-80px); }
+    @media (max-width: 1100px) {
+      .page-hdr { width: 100%; transform: none; }
+    }
+    /* SanaOS purple desktop theme */
+    :root {
+      color-scheme: dark;
+      --primary: #d88ad7;
+      --primary-dark: #b66acb;
+      --dark: #1d132b;
+      --forest: #2b1c3b;
+      --bg: #1d132b;
+      --card-bg: rgba(39, 26, 57, .9);
+      --text-dark: #f7f1ff;
+      --text-muted: #c0b2d0;
+      --border: rgba(255, 255, 255, .12);
+      --shadow-card: 0 14px 38px rgba(8, 4, 15, .26);
+    }
+    body {
+      color: var(--text-dark);
+      background:
+        radial-gradient(ellipse at 83% 12%, rgba(119, 81, 185, .38), transparent 40%),
+        radial-gradient(ellipse at 15% 88%, rgba(240, 121, 192, .2), transparent 36%),
+        linear-gradient(135deg, #2b1c3b 0%, #1d1730 46%, #322041 100%);
+      background-attachment: fixed;
+    }
+    header {
+      background: rgba(25, 17, 38, .86);
+      border-color: rgba(255, 255, 255, .1);
+      box-shadow: 5px 0 24px rgba(10, 5, 18, .2);
+      backdrop-filter: blur(22px);
+    }
+    .brand-logo { border-color: rgba(255, 255, 255, .12); }
+    .brand-icon { background: linear-gradient(145deg, #ffe0a4, #f08bc9 55%, #a88dff); color: #2a1839; box-shadow: 0 5px 16px rgba(10, 5, 18, .28); }
+    .brand-title { color: #f7f1ff; }
+    .brand-title span { color: #d7a7e8; }
+    header .quick-nav a { color: #d7cbe4; }
+    header .quick-nav a {
+      text-decoration: none;
+      font-family: 'DM Sans', 'IBM Plex Sans Thai', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: .005em;
+      line-height: 1.5;
+    }
+    header .quick-nav a:hover { color: #fff; background: rgba(255, 255, 255, .08); }
+    header .quick-nav a.active { color: #fff; background: rgba(216, 138, 215, .18); box-shadow: inset 3px 0 #e68bd3; }
+    .header-btns .btn { border-color: rgba(255,255,255,.16) !important; background: rgba(255,255,255,.08) !important; color: #f7f1ff !important; }
+    .header-btns .btn:hover { background: rgba(255,255,255,.14) !important; }
+    .page-hdr, .stat-card, .card, .modal-box {
+      color: var(--text-dark);
+      background: rgba(39, 26, 57, .88);
+      border: 1px solid rgba(255, 255, 255, .12);
+      box-shadow: 0 14px 38px rgba(8, 4, 15, .24);
+      backdrop-filter: blur(20px);
+    }
+    .page-hdr { background: linear-gradient(120deg, rgba(65, 39, 83, .94), rgba(45, 29, 63, .91)); }
+    .page-hdr::after { border-color: rgba(231, 155, 220, .13); box-shadow: 0 0 0 28px rgba(216,138,215,.035), 0 0 0 62px rgba(168,141,255,.025); }
+    .badge-admin { color: #f4c9f1; background: rgba(216, 138, 215, .17); }
+    .page-title h2, .card-title, .stat-val, .modal-title { color: #fbf7ff; }
+    .page-title p, .stat-lbl, .stat-val small, .card-subtitle, .section-note, .tour-count, .tour-name-sub { color: #c0b2d0; }
+    .stat-icon { background: rgba(216, 138, 215, .14); }
+    .card-hdr { border-bottom-color: rgba(255, 255, 255, .12); }
+    th { background: rgba(255, 255, 255, .07); color: #d9cae8; }
+    td { color: #eee6f5; border-bottom-color: rgba(255, 255, 255, .09); }
+    tr:hover td { background: rgba(255, 255, 255, .045); }
+    .tour-name-th { color: #fbf7ff; }
+    .tour-thumb { background: #332442; }
+    .badge-cat { color: #ead5fa; background: rgba(168, 141, 255, .16); }
+    .price-tag { color: #f0b2e5; }
+    label { color: #e4d9ee; }
+    input[type="text"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], textarea, select {
+      color: #f7f1ff; background: rgba(23, 15, 35, .82); border-color: rgba(255, 255, 255, .16);
+    }
+    input::placeholder, textarea::placeholder { color: #9e8caf; }
+    input:focus, textarea:focus, select:focus { outline: 2px solid rgba(216, 138, 215, .38); border-color: #d88ad7; }
+    select option { color: #f7f1ff; background: #291b3b; }
+    .item-card { background: rgba(255, 255, 255, .045); border-color: rgba(255, 255, 255, .12); }
+    .item-num { color: #f0c9ed; background: rgba(216, 138, 215, .16); }
+    .btn-primary, .page-hdr .btn-primary { color: #291b35; background: linear-gradient(135deg, #efb0dd, #c28aff); border: 0; box-shadow: 0 4px 16px rgba(194, 138, 255, .2); }
+    .btn-primary:hover, .page-hdr .btn-primary:hover { color: #21152f; background: linear-gradient(135deg, #f6c4e8, #d1a8ff); }
+    .btn-outline, .btn-upload { color: #f1e9f7; background: rgba(255, 255, 255, .07); border-color: rgba(255, 255, 255, .16); }
+    .btn-outline:hover, .btn-upload:hover { color: #fff; background: rgba(255, 255, 255, .13); border-color: rgba(216, 138, 215, .45); }
+    .btn-danger { color: #ffc0cf; background: rgba(220, 72, 114, .15); }
+    .btn-danger:hover { color: #fff; background: #bb456d; }
+    .save-bar { background: rgba(25, 17, 38, .94); border-top: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 -10px 35px rgba(9, 5, 16, .2); backdrop-filter: blur(18px); }
+    .save-info { color: #e4d9ee; }
+    .toast { color: #fbf7ff; background: #362246; border: 1px solid rgba(255, 255, 255, .14); box-shadow: 0 12px 34px rgba(8, 4, 15, .3); }
+    .modal-overlay { background: rgba(9, 5, 15, .74); backdrop-filter: blur(5px); }
+    .status-btn.active { color: #a9f1d2; background: rgba(43, 153, 112, .2); }
+    .status-btn.inactive { color: #ffc0cf; background: rgba(220, 72, 114, .18); }
+    @media (max-width: 900px) {
+      header { background: rgba(25, 17, 38, .94); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="brand-logo" target="_blank">
+      <div class="brand-icon">🧭</div>
+      <div class="brand-title">
+        Nay journey
+        <span>BOUTIQUE TRAVEL AGENCY</span>
+      </div>
+    </a>
+    <nav class="quick-nav" aria-label="เมนูหน้าแอดมิน">
+      <a href="?page=tours" data-admin-page="tours">แพ็กเกจทัวร์</a>
+      <a href="?page=settings" data-admin-page="settings">ข้อมูลติดต่อ</a>
+      <a href="?page=home" data-admin-page="home">หน้าแรก</a>
+      <a href="?page=trust" data-admin-page="trust">จุดเด่น</a>
+      <a href="?page=edit" data-admin-page="edit">แก้ไขทัวร์</a>
+    </nav>
+    <div class="header-btns">
+      <a href="index.html" class="btn btn-outline btn-sm" target="_blank" style="color:#111; background:#fff; border-color:#fff;">🏠 กลับสู่หน้าเว็บไซต์ลูกค้า</a>
+    </div>
+  </header>
+
+  <div class="toast" id="toast">✅ บันทึกข้อมูลเรียบร้อยแล้ว!</div>
+
+  <div class="container">
+
+    <div class="page-hdr">
+      <div class="page-title">
+        <span class="badge-admin">ADMIN CONTROL PANEL</span>
+        <h2 id="adminPageTitle">จัดการแพ็กเกจทัวร์</h2>
+        <p id="adminPageDesc">ดู ค้นหา เพิ่ม และปิดการแสดงผลแพ็กเกจทัวร์</p>
+      </div>
+      <button type="button" class="btn btn-primary" id="addTourHeaderBtn" onclick="openNewTourModal()">+ เพิ่มแพ็กเกจทัวร์ใหม่</button>
+    </div>
+
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-lbl">จำนวนแพ็กเกจทั้งหมด</div>
+        <div class="stat-val" id="statTotal">0</div>
+        <div class="stat-icon">📦</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">กำลังเปิดขาย (Active)</div>
+        <div class="stat-val" style="color: var(--success);" id="statActive">0</div>
+        <div class="stat-icon">✅</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">ปิดการขายชั่วคราว</div>
+        <div class="stat-val" style="color: var(--danger);" id="statInactive">0</div>
+        <div class="stat-icon">🚫</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">ยอดผู้เข้าชมสะสม (Mock)</div>
+        <div class="stat-val">12,480 <small>ครั้ง</small></div>
+        <div class="stat-icon">📈</div>
+      </div>
+    </div>
+
+    <div class="card" id="tourList">
+      <div class="card-hdr">
+        <div>
+          <div class="card-title">📦 รายการแพ็กเกจทัวร์ในระบบ</div>
+          <div class="card-subtitle">เลือก “แก้ไข” เพื่อเปิดแบบฟอร์ม หรือเปลี่ยนสถานะการแสดงผลจากปุ่มสี</div>
+        </div>
+      </div>
+      <div class="tour-tools">
+        <input class="tour-search" type="search" id="tourSearch" placeholder="🔎 ค้นหาชื่อทัวร์หรือหมวดหมู่" aria-label="ค้นหาแพ็กเกจทัวร์" oninput="renderToursTable()">
+        <span class="tour-count" id="tourCount" aria-live="polite"></span>
+      </div>
+      
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>รูปภาพ & ชื่อทัวร์</th>
+              <th>หมวดหมู่</th>
+              <th>ราคา (บาท)</th>
+              <th>ระยะเวลา</th>
+              <th>สถานะ</th>
+              <th style="text-align: right;">การจัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="toursTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Global Website Configuration Card (มีช่องใส่เบอร์โทรศัพท์) ── -->
+    <div class="card" id="siteSettings">
+      <div class="card-hdr">
+        <div class="card-title">⚙️ ข้อมูลติดต่อ & ขนาดตัวอักษรเว็บไซต์</div>
+      </div>
+      <p class="section-note">ข้อมูลนี้ใช้กับปุ่มโทรศัพท์, LINE และข้อความติดต่อในทุกหน้าของเว็บไซต์</p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>เบอร์โทรศัพท์หลัก <small>เช่น 082-990-7755</small></label>
+          <input type="text" id="cfgPhone" placeholder="082-990-7755">
+        </div>
+        <div class="form-group">
+          <label>ลิงก์ Line Official <small>เช่น https://lin.ee/vhU6h6G</small></label>
+          <input type="text" id="cfgLineUrl" placeholder="https://lin.ee/vhU6h6G">
+        </div>
+        <div class="form-group">
+          <label>ไอดี Line <small>เช่น @grouplek.explorer</small></label>
+          <input type="text" id="cfgLineId" placeholder="@grouplek.explorer">
+        </div>
+        <div class="form-group">
+          <label>ขนาดตัวอักษรหลัก (Base Font Size)</label>
+          <select id="cfgFontSz">
+            <option value="14px">เล็ก (14px)</option>
+            <option value="15px">ปกติ (15px)</option>
+            <option value="16px" selected>มาตรฐาน (16px)</option>
+            <option value="17px">ใหญ่ (17px)</option>
+            <option value="18px">ใหญ่พิเศษ (18px)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>เลขที่ใบอนุญาตนำเที่ยว</label>
+          <input type="text" id="cfgLicense" placeholder="ใบอนุญาตเลขที่ 11/13245">
+        </div>
+        <div class="form-group">
+          <label>เวลาทำการ</label>
+          <input type="text" id="cfgBusinessHours" placeholder="จันทร์ - อาทิตย์ 08:30 - 20:00 น.">
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="homeSettings">
+      <div class="card-hdr">
+        <div class="card-title">🏠 ตั้งค่าเนื้อหาแบนเนอร์หน้าแรก (Hero Section)</div>
+      </div>
+      <p class="section-note">แก้ข้อความและรูปภาพส่วนบนสุดที่ผู้เข้าชมเห็นเมื่อเปิดหน้าแรก</p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>ป้ายกำกับแบนเนอร์ (Hero Badge)</label>
+          <input type="text" id="hHeroBadge" placeholder="✨ BOUTIQUE SMALL GROUP TRAVEL">
+        </div>
+        <div class="form-group">
+          <label>หัวข้อแบนเนอร์บรรทัดแรก</label>
+          <input type="text" id="hHeroTitle" placeholder="เปิดโลกมุมมองใหม่">
+        </div>
+        <div class="form-group">
+          <label>หัวข้อไฮไลท์สีทอง</label>
+          <input type="text" id="hHeroTitleHighlight" placeholder="กับการเดินทางที่เหนือระดับ">
+        </div>
+        <div class="form-group full">
+          <label>คำโปรย / คำอธิบายหน้าแรก</label>
+          <textarea id="hHeroSubtitle" placeholder="คำบรรยายใต้หัวข้อแบนเนอร์..."></textarea>
+        </div>
+        <div class="form-group full">
+          <label>รูปภาพพื้นหลังแบนเนอร์หน้าแรก (เลือกจาก PC หรือใส่ URL)</label>
+          <div class="upload-row">
+            <label class="btn-upload">
+              📁 เลือกรูปจากเครื่อง PC
+              <input type="file" accept="image/*" style="display:none;" onchange="handleFileUpload(this, 'hHeroImage', 'homeHeroPreview')">
+            </label>
+            <small style="color:var(--text-muted);">หรือวาง URL ด้านล่าง</small>
+          </div>
+          <input type="text" id="hHeroImage" placeholder="https:// หรือ Base64" oninput="updatePreview('hHeroImage', 'homeHeroPreview')">
+          <img id="homeHeroPreview" class="img-preview" src="" alt="Home Hero Preview">
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="trustSettings">
+      <div class="card-hdr">
+        <div class="card-title">🛡️ ตั้งค่าการันตีความน่าเชื่อถือใต้แบนเนอร์ (Trust Strip)</div>
+        <button type="button" class="btn btn-sm btn-primary" onclick="addTrustItem()">+ เพิ่มข้อการันตี</button>
+      </div>
+      <div id="trustItemsContainer"></div>
+    </div>
+
+    <div class="card" id="editTourFormSection">
+      <div class="card-hdr">
+        <div class="card-title">✏️ แก้ไขรายละเอียดแพ็กเกจทัวร์ที่เลือก</div>
+        <div class="edit-tour-tools">
+          <span style="font-weight:700; color:var(--text-muted); font-size:0.9rem;">แพ็กเกจที่เลือก:</span>
+          <select id="tourSelect" onchange="switchTour(this.value)"></select>
+          <button type="button" class="btn btn-sm btn-danger" onclick="deleteCurrentTour()">🗑️ ลบทัวร์นี้</button>
+        </div>
+      </div>
+      <p class="section-note">แก้รายละเอียด รูปภาพ ราคา และกำหนดการของทัวร์ที่เลือก จากนั้นกด “บันทึกฉบับร่าง” ด้านล่าง</p>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>หมวดหมู่ทัวร์</label>
+          <select id="tCategory">
+            <option value="ต่างประเทศ">✈️ ทัวร์ต่างประเทศ</option>
+            <option value="ในประเทศ">🏝️ ทัวร์ในประเทศ</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>ธีมสีหน้าทัวร์</label>
+          <select id="tTheme">
+            <option value="auto">🎨 อัตโนมัติตามปลายทาง</option>
+            <option value="sea">🌊 ทะเล — ฟ้าเขียว</option>
+            <option value="mountain">🏔️ ภูเขา — ฟ้า</option>
+            <option value="forest">🌿 ธรรมชาติ — เขียว</option>
+            <option value="classic">✨ คลาสสิก — ทอง</option>
+          </select>
+          <small style="color:var(--text-muted);">เลือกอัตโนมัติให้ระบบจับคู่สีจากชื่อปลายทาง</small>
+        </div>
+        <div class="form-group">
+          <label>ชื่อสถานที่ / ปลายทาง (ไทย)</label>
+          <input type="text" id="tCountryThai">
+        </div>
+        <div class="form-group">
+          <label>ชื่อสถานที่ (อังกฤษ)</label>
+          <input type="text" id="tCountry">
+        </div>
+        <div class="form-group">
+          <label>ป้ายกำกับ (Badge)</label>
+          <input type="text" id="tBadge">
+        </div>
+        <div class="form-group">
+          <label>ระยะเวลาทริป</label>
+          <input type="text" id="tDuration">
+        </div>
+        <div class="form-group" style="grid-column: span 2;">
+          <label>ชื่อหัวข้อทัวร์แบบเต็ม</label>
+          <input type="text" id="tTitle">
+        </div>
+        <div class="form-group full">
+          <label>สโลแกน / คำโปรยสั้นๆ</label>
+          <input type="text" id="tTagline">
+        </div>
+
+        <div class="form-group">
+          <label>ราคาท่านละ (บาท)</label>
+          <input type="text" id="tPrice">
+        </div>
+        <div class="form-group">
+          <label>หน่วยราคา</label>
+          <input type="text" id="tPriceUnit">
+        </div>
+        <div class="form-group">
+          <label>พักเดี่ยวเพิ่ม (บาท)</label>
+          <input type="text" id="tSingleSupplement">
+        </div>
+        <div class="form-group">
+          <label>ยานพาหนะ / เที่ยวบิน</label>
+          <input type="text" id="tAirline">
+        </div>
+        <div class="form-group full">
+          <label>📥 ลิงก์ดาวน์โหลดโปรแกรม PDF</label>
+          <input type="text" id="tProgramPdf" placeholder="https://...">
+        </div>
+        <div class="form-group full">
+          <label>หมายเหตุค่าใช้จ่ายเพิ่มเติม</label>
+          <textarea id="tPriceNote"></textarea>
+        </div>
+      </div>
+
+      <div style="margin-top:2rem;">
+        <h4 style="margin-bottom:1rem; font-weight:800;">🖼️ รูปภาพหลักทัวร์นี้</h4>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>1. รูปพื้นหลังหน้าทัวร์นี้ (Hero Image)</label>
+            <div class="upload-row">
+              <label class="btn-upload btn-sm">
+                📁 เลือกรูปจาก PC
+                <input type="file" accept="image/*" style="display:none;" onchange="handleFileUpload(this, 'tHeroImage', 'heroPreview')">
+              </label>
+            </div>
+            <input type="text" id="tHeroImage" placeholder="https:// หรือ Base64" oninput="updatePreview('tHeroImage', 'heroPreview')">
+            <img id="heroPreview" class="img-preview" src="" alt="Hero Preview">
+          </div>
+          <div class="form-group">
+            <label>2. รูปปกการ์ดทัวร์บนหน้าหลัก (Card Thumbnail)</label>
+            <div class="upload-row">
+              <label class="btn-upload btn-sm">
+                📁 เลือกรูปจาก PC
+                <input type="file" accept="image/*" style="display:none;" onchange="handleFileUpload(this, 'tCardImage', 'cardPreview')">
+              </label>
+            </div>
+            <input type="text" id="tCardImage" placeholder="https:// หรือ Base64" oninput="updatePreview('tCardImage', 'cardPreview')">
+            <img id="cardPreview" class="img-preview" src="" alt="Card Preview">
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:2rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h4 style="font-weight:800;">✨ ข้อมูลแถบไฮไลท์ (Highlights Strip)</h4>
+          <button type="button" class="btn btn-sm btn-primary" onclick="addHighlightItem()">+ เพิ่มช่องไฮไลท์</button>
+        </div>
+        <div id="highlightsContainer"></div>
+      </div>
+
+      <div style="margin-top:2rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h4 style="font-weight:800;">🗺️ กำหนดการเดินทางรายวัน (Itinerary)</h4>
+          <button type="button" class="btn btn-sm btn-primary" onclick="addItineraryDay()">+ เพิ่มวันเดินทาง</button>
+        </div>
+        <div id="itineraryContainer"></div>
+      </div>
+
+      <div style="margin-top:2rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h4 style="font-weight:800;">🎯 สถานที่ท่องเที่ยวเด่น</h4>
+          <button type="button" class="btn btn-sm btn-primary" onclick="addAttraction()">+ เพิ่มสถานที่</button>
+        </div>
+        <div id="attractionsContainer"></div>
+      </div>
+
+      <div style="margin-top:2rem;">
+        <h4 style="margin-bottom:1rem; font-weight:800;">📋 รายการราคารวม & ไม่รวม</h4>
+        <div class="form-grid">
+          <div class="form-group full">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+              <label>✅ ราคานี้รวม</label>
+              <button type="button" class="btn btn-sm btn-success" onclick="addIncludedItem()">+ เพิ่มรายการรวม</button>
+            </div>
+            <div id="includedContainer"></div>
+          </div>
+          <div class="form-group full" style="margin-top:1rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+              <label>❌ ราคานี้ไม่รวม</label>
+              <button type="button" class="btn btn-sm btn-danger" onclick="addExcludedItem()">+ เพิ่มรายการไม่รวม</button>
+            </div>
+            <div id="excludedContainer"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:2rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h4 style="font-weight:800;">📸 รูปภาพแกลเลอรี่ (Gallery)</h4>
+          <div style="display:flex; gap:0.5rem;">
+            <label class="btn btn-sm btn-success" style="cursor:pointer;">
+              📁 อัปโหลดจากเครื่อง PC
+              <input type="file" accept="image/*" style="display:none;" onchange="handleGalleryUpload(this)">
+            </label>
+            <button type="button" class="btn btn-sm btn-primary" onclick="addGalleryUrlItem()">+ ใส่ลิงก์ URL</button>
+          </div>
+        </div>
+        <div id="galleryContainer" class="form-grid"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="modal-overlay" id="newTourModal">
+    <div class="modal-box">
+      <h2 class="modal-title">✨ เพิ่มแพ็กเกจทัวร์ใหม่</h2>
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label>รหัสทัวร์ (Slug ภาษาอังกฤษ)</label>
+        <input type="text" id="mTourId" placeholder="เช่น switzerland">
+      </div>
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label>หมวดหมู่</label>
+        <select id="mTourCategory">
+          <option value="ต่างประเทศ">✈️ ทัวร์ต่างประเทศ</option>
+          <option value="ในประเทศ">🏝️ ทัวร์ในประเทศ</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label>ชื่อสถานที่ท่องเที่ยว (ภาษาไทย)</label>
+        <input type="text" id="mTourNameThai" placeholder="เช่น สวิตเซอร์แลนด์">
+      </div>
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label>ชื่อภาษาอังกฤษ</label>
+        <input type="text" id="mTourNameEn" placeholder="เช่น Switzerland Grand Express">
+      </div>
+      <div class="form-group">
+        <label>ราคาท่านละ (บาท)</label>
+        <input type="text" id="mTourPrice" placeholder="เช่น 89,000">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="closeNewTourModal()">ยกเลิก</button>
+        <button type="button" class="btn btn-primary" onclick="confirmCreateTour()">สร้างแพ็กเกจทันที</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="save-bar">
+    <div class="save-info">
+      💡 <strong>บันทึกฉบับร่าง</strong> เก็บไว้ในเบราว์เซอร์นี้ • ดาวน์โหลด data.js แล้วเผยแพร่เพื่ออัปเดตเว็บให้ผู้เข้าชม
+    </div>
+    <div class="save-actions">
+      <button type="button" class="btn btn-outline btn-sm" onclick="exportDataJs()" style="color:#111; background:#fff; border-color:#fff;">📥 ส่งออก data.js</button>
+      <button type="button" class="btn btn-primary" onclick="saveAll(false)">💾 บันทึกฉบับร่าง</button>
+    </div>
+  </div>
+
+  <script>
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+    }
+    function safeImageUrl(value) {
+      const url = String(value ?? '').trim();
+      if (!url || /[\u0000-\u001f\u007f]/.test(url)) return '';
+      if (/^data:image\/(?:png|jpe?g|gif|webp);base64,[a-z0-9+/]+=*$/i.test(url)) return url;
+      if (/^(?:https?:)/i.test(url)) {
+        try { if (['http:', 'https:'].includes(new URL(url).protocol)) return url; } catch {}
+        return '';
+      }
+      if (/^(?:[./?#]|[^:/?#]+(?:[/?#]|$))/.test(url) && !url.startsWith('//') && !url.startsWith('\\')) return url;
+      return '';
+    }
+    let allTours = [];
+    let currentTourIndex = 0;
+    let currentSiteConfig = {};
+    let currentHomeConfig = {};
+
+    function init() {
+      currentSiteConfig = typeof siteConfig !== 'undefined' ? Object.assign({}, siteConfig) : {
+        phone: "082-990-7755", lineUrl: "https://lin.ee/vhU6h6G", lineId: "@grouplek.explorer", license: "ใบอนุญาตเลขที่ 11/13245", businessHours: "จันทร์ - อาทิตย์ 08:30 - 20:00 น.", fontSize: "16px"
+      };
+      try {
+        const savedCfg = localStorage.getItem('site_config');
+        if (savedCfg) currentSiteConfig = Object.assign(currentSiteConfig, JSON.parse(savedCfg));
+      } catch(e) {}
+
+      document.getElementById('cfgPhone').value = currentSiteConfig.phone || '';
+      document.getElementById('cfgLineUrl').value = currentSiteConfig.lineUrl || '';
+      document.getElementById('cfgLineId').value = currentSiteConfig.lineId || '';
+      document.getElementById('cfgLicense').value = currentSiteConfig.license || '';
+      document.getElementById('cfgBusinessHours').value = currentSiteConfig.businessHours || '';
+      document.getElementById('cfgFontSz').value = currentSiteConfig.fontSize || '16px';
+
+      currentHomeConfig = typeof homeConfig !== 'undefined' ? Object.assign({}, homeConfig) : {
+        heroBadge: "✨ BOUTIQUE SMALL GROUP TRAVEL", heroTitle: "เปิดโลกมุมมองใหม่", heroTitleHighlight: "กับการเดินทางที่เหนือระดับ", heroSubtitle: "", heroImage: "",
+        trustItems: [
+          { icon: "🛡️", title: "ใบอนุญาตนำเที่ยวถูกต้อง", desc: "ทะเบียนเลขที่ 11/13245 มั่นใจ 100%" },
+          { icon: "👥", title: "กรุ๊ปเล็ก 8-15 ท่าน", desc: "เที่ยวส่วนตัว ไม่เร่งรีบ ไม่แวะร้านค้า" },
+          { icon: "⭐", title: "ความพึงพอใจ 4.9/5", desc: "จากผู้ร่วมเดินทางกว่า 1,200+ ท่าน" },
+          { icon: "🏨", title: "คัดสรรโรงแรม & อาหาร", desc: "มาตรฐานพรีเมียม สะอาด ปลอดภัย" }
+        ]
+      };
+      try {
+        const savedHome = localStorage.getItem('home_config');
+        if (savedHome) currentHomeConfig = Object.assign(currentHomeConfig, JSON.parse(savedHome));
+      } catch(e) {}
+
+      document.getElementById('hHeroBadge').value = currentHomeConfig.heroBadge || '';
+      document.getElementById('hHeroTitle').value = currentHomeConfig.heroTitle || '';
+      document.getElementById('hHeroTitleHighlight').value = currentHomeConfig.heroTitleHighlight || '';
+      document.getElementById('hHeroSubtitle').value = currentHomeConfig.heroSubtitle || '';
+      document.getElementById('hHeroImage').value = currentHomeConfig.heroImage || '';
+      document.getElementById('homeHeroPreview').src = safeImageUrl(currentHomeConfig.heroImage);
+
+      renderTrustItemsForm(currentHomeConfig.trustItems || []);
+
+      const saved = localStorage.getItem('all_tours_data');
+      if (saved) {
+        try { allTours = JSON.parse(saved); } catch(e) { allTours = []; }
+      }
+      if (!allTours.length && typeof defaultTours !== 'undefined') {
+        allTours = JSON.parse(JSON.stringify(defaultTours));
+      }
+
+      allTours.forEach(t => { if (t.status === undefined) t.status = 'active'; });
+
+      renderToursTable();
+      populateTourSelect();
+      loadTourToForm(currentTourIndex);
+      updateStats();
+      setupAdminPages();
+    }
+
+    const adminPageViews = {
+      tours: { title: 'จัดการแพ็กเกจทัวร์', desc: 'ดู ค้นหา เพิ่ม และปิดการแสดงผลแพ็กเกจทัวร์', ids: ['statsGrid', 'tourList'] },
+      settings: { title: 'ข้อมูลติดต่อเว็บไซต์', desc: 'แก้ไขเบอร์โทรศัพท์, LINE, ใบอนุญาต และขนาดตัวอักษร', ids: ['siteSettings'] },
+      home: { title: 'เนื้อหาหน้าแรก', desc: 'แก้ไขแบนเนอร์ ข้อความ และรูปภาพหน้าแรก', ids: ['homeSettings'] },
+      trust: { title: 'จุดเด่นและความน่าเชื่อถือ', desc: 'จัดการข้อมูลการันตีที่แสดงใต้แบนเนอร์หน้าแรก', ids: ['trustSettings'] },
+      edit: { title: 'แก้ไขแพ็กเกจทัวร์', desc: 'แก้รายละเอียด ราคา รูปภาพ และกำหนดการของทัวร์', ids: ['editTourFormSection'] }
+    };
+
+    function setupAdminPages() {
+      document.querySelectorAll('[data-admin-page]').forEach(link => {
+        link.addEventListener('click', event => {
+          event.preventDefault();
+          setAdminPage(link.dataset.adminPage, true);
+        });
+      });
+      window.addEventListener('popstate', () => setAdminPage(getAdminPageFromUrl(), false));
+      const hashPages = { '#tourList': 'tours', '#siteSettings': 'settings', '#homeSettings': 'home', '#trustSettings': 'trust', '#editTourFormSection': 'edit' };
+      const legacyPage = hashPages[window.location.hash];
+      if (!new URLSearchParams(window.location.search).has('page') && legacyPage) {
+        history.replaceState({ adminPage: legacyPage }, '', `?page=${legacyPage}`);
+      }
+      setAdminPage(getAdminPageFromUrl(), false);
+    }
+
+    function getAdminPageFromUrl() {
+      const requested = new URLSearchParams(window.location.search).get('page');
+      return Object.prototype.hasOwnProperty.call(adminPageViews, requested) ? requested : 'tours';
+    }
+
+    function setAdminPage(page, updateUrl) {
+      if (!Object.prototype.hasOwnProperty.call(adminPageViews, page)) page = 'tours';
+      const view = adminPageViews[page];
+      const visibleIds = new Set(view.ids);
+      ['statsGrid', 'tourList', 'siteSettings', 'homeSettings', 'trustSettings', 'editTourFormSection'].forEach(id => {
+        document.getElementById(id).hidden = !visibleIds.has(id);
+      });
+      document.getElementById('adminPageTitle').textContent = view.title;
+      document.getElementById('adminPageDesc').textContent = view.desc;
+      document.getElementById('addTourHeaderBtn').hidden = page !== 'tours';
+      document.querySelectorAll('[data-admin-page]').forEach(link => {
+        const active = link.dataset.adminPage === page;
+        link.classList.toggle('active', active);
+        if (active) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      });
+      if (updateUrl && getAdminPageFromUrl() !== page) history.pushState({ adminPage: page }, '', `?page=${page}`);
+      if (updateUrl) window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderToursTable() {
+      const tbody = document.getElementById('toursTableBody');
+      const query = (document.getElementById('tourSearch')?.value || '').trim().toLocaleLowerCase('th');
+      const matches = allTours.map((tour, index) => ({ tour, index })).filter(({ tour }) =>
+        [tour.countryThai, tour.country, tour.title, tour.category, tour.id]
+          .some(value => String(value || '').toLocaleLowerCase('th').includes(query))
+      );
+      const count = document.getElementById('tourCount');
+      if (count) count.textContent = query ? `พบ ${matches.length} จาก ${allTours.length} รายการ` : `ทั้งหมด ${allTours.length} รายการ`;
+      if (!matches.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:2rem;">ไม่พบแพ็กเกจที่ตรงกับคำค้น</td></tr>';
+        return;
+      }
+      tbody.innerHTML = matches.map(({ tour: t, index: idx }) => `
+        <tr>
+          <td>
+            <div class="tour-thumb-cell">
+              <img src="${escapeHtml(safeImageUrl(t.cardImage || t.heroImage))}" class="tour-thumb" alt="${escapeHtml(t.countryThai)}">
+              <div>
+                <div class="tour-name-th">${escapeHtml(t.countryThai || t.country)}</div>
+                <div class="tour-name-sub">${escapeHtml(t.title || '')}</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge-cat">${escapeHtml(t.category || 'ต่างประเทศ')}</span></td>
+          <td><span class="price-tag">฿${escapeHtml(t.price || '0')}</span></td>
+          <td>${escapeHtml(t.duration || 'หลายวัน')}</td>
+          <td>
+            <button type="button" class="status-btn ${t.status === 'inactive' ? 'inactive' : 'active'}" onclick="toggleStatus(${idx})">
+              ${t.status === 'inactive' ? '🚫 ปิดแสดงผล' : '✓ เปิดแสดงผล'}
+            </button>
+          </td>
+          <td style="text-align: right;">
+            <button type="button" class="btn btn-sm btn-outline" onclick="editTour(${idx})">✏️ แก้ไข</button>
+            <button type="button" class="btn btn-sm btn-danger" onclick="deleteTourByIndex(${idx})">🗑️</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function toggleStatus(idx) {
+      allTours[idx].status = (allTours[idx].status === 'inactive') ? 'active' : 'inactive';
+      renderToursTable();
+      updateStats();
+      saveAll(false);
+    }
+
+    function updateStats() {
+      document.getElementById('statTotal').textContent = allTours.length;
+      document.getElementById('statActive').textContent = allTours.filter(t => t.status !== 'inactive').length;
+      document.getElementById('statInactive').textContent = allTours.filter(t => t.status === 'inactive').length;
+    }
+
+    function editTour(idx) {
+      collectCurrentFormData();
+      currentTourIndex = idx;
+      document.getElementById('tourSelect').value = idx;
+      loadTourToForm(idx);
+      setAdminPage('edit', true);
+    }
+
+    function deleteTourByIndex(idx) {
+      if (allTours.length <= 1) { alert('ต้องมีแพ็กเกจทัวร์อย่างน้อย 1 รายการ'); return; }
+      if (confirm('ต้องการลบแพ็กเกจทัวร์นี้ใช่หรือไม่?')) {
+        allTours.splice(idx, 1);
+        currentTourIndex = 0;
+        renderToursTable();
+        populateTourSelect();
+        loadTourToForm(0);
+        updateStats();
+        saveAll(false);
+      }
+    }
+
+    function renderTrustItemsForm(items) {
+      const container = document.getElementById('trustItemsContainer');
+      container.innerHTML = '';
+      items.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'item-card';
+        div.innerHTML = `
+          <div class="item-hdr">
+            <span class="item-num">ข้อการันตีที่ ${index + 1}</span>
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeTrustItem(${index})">🗑️ ลบข้อนี้</button>
+          </div>
+          <div class="form-grid">
+            <div class="form-group" style="max-width: 100px;">
+              <label>ไอคอน</label>
+              <input type="text" value="${escapeHtml(item.icon || '🛡️')}" onchange="currentHomeConfig.trustItems[${index}].icon = this.value">
+            </div>
+            <div class="form-group" style="flex:1;">
+              <label>หัวข้อการันตี</label>
+              <input type="text" value="${escapeHtml(item.title || '')}" onchange="currentHomeConfig.trustItems[${index}].title = this.value">
+            </div>
+            <div class="form-group full">
+              <label>คำอธิบายสั้นๆ</label>
+              <input type="text" value="${escapeHtml(item.desc || '')}" onchange="currentHomeConfig.trustItems[${index}].desc = this.value">
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function addTrustItem() {
+      if (!currentHomeConfig.trustItems) currentHomeConfig.trustItems = [];
+      currentHomeConfig.trustItems.push({ icon: "⭐", title: "หัวข้อใหม่", desc: "คำอธิบาย..." });
+      renderTrustItemsForm(currentHomeConfig.trustItems);
+    }
+
+    function removeTrustItem(index) {
+      currentHomeConfig.trustItems.splice(index, 1);
+      renderTrustItemsForm(currentHomeConfig.trustItems);
+    }
+
+    function populateTourSelect() {
+      const sel = document.getElementById('tourSelect');
+      sel.innerHTML = allTours.map((t, idx) => `
+        <option value="${idx}" ${idx === currentTourIndex ? 'selected' : ''}>
+          ${escapeHtml(t.countryThai || t.country)} (${escapeHtml(t.price)} ฿)
+        </option>
+      `).join('');
+    }
+
+    function switchTour(newIndex) {
+      collectCurrentFormData();
+      currentTourIndex = parseInt(newIndex);
+      loadTourToForm(currentTourIndex);
+    }
+
+    function loadTourToForm(idx) {
+      const t = allTours[idx];
+      if (!t) return;
+
+      document.getElementById('tCategory').value = t.category || 'ต่างประเทศ';
+      document.getElementById('tTheme').value = ['auto', 'sea', 'mountain', 'forest', 'classic'].includes(t.theme) ? t.theme : 'auto';
+      document.getElementById('tCountryThai').value = t.countryThai || '';
+      document.getElementById('tCountry').value = t.country || '';
+      document.getElementById('tBadge').value = t.badge || '';
+      document.getElementById('tDuration').value = t.duration || '';
+      document.getElementById('tTitle').value = t.title || '';
+      document.getElementById('tTagline').value = t.tagline || '';
+      document.getElementById('tPrice').value = t.price || '';
+      document.getElementById('tPriceUnit').value = t.priceUnit || 'บาท / ท่าน';
+      document.getElementById('tSingleSupplement').value = t.singleSupplement || '';
+      document.getElementById('tAirline').value = t.airline || '';
+      document.getElementById('tProgramPdf').value = t.programPdf || '';
+      document.getElementById('tPriceNote').value = t.priceNote || '';
+
+      document.getElementById('tHeroImage').value = t.heroImage || '';
+      document.getElementById('heroPreview').src = safeImageUrl(t.heroImage);
+
+      document.getElementById('tCardImage').value = t.cardImage || t.heroImage || '';
+      document.getElementById('cardPreview').src = safeImageUrl(t.cardImage || t.heroImage);
+
+      renderHighlights(t.highlights || []);
+      renderIncludedList(t.included || []);
+      renderExcludedList(t.excluded || []);
+      renderItinerary(t.itinerary || []);
+      renderAttractions(t.attractions || []);
+      renderGallery(t.gallery || []);
+    }
+
+    function renderHighlights(list) {
+      const c = document.getElementById('highlightsContainer');
+      c.innerHTML = '';
+      (list || []).forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'item-card';
+        div.innerHTML = `
+          <div class="item-hdr">
+            <span class="item-num">ไฮไลท์ที่ ${index + 1}</span>
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeHighlightItem(${index})">🗑️ ลบไฮไลท์</button>
+          </div>
+          <div class="form-grid">
+            <div class="form-group" style="max-width: 100px;">
+              <label>ไอคอน</label>
+              <input type="text" value="${escapeHtml(item.icon || '🏝️')}" onchange="allTours[currentTourIndex].highlights[${index}].icon = this.value">
+            </div>
+            <div class="form-group" style="flex:1;">
+              <label>หัวข้อไฮไลท์ (เช่น 3 วัน 2 คืน / เรือ Speedboat)</label>
+              <input type="text" value="${escapeHtml(item.label || '')}" onchange="allTours[currentTourIndex].highlights[${index}].label = this.value">
+            </div>
+            <div class="form-group full">
+              <label>รายละเอียดสั้นๆ (เช่น เที่ยวครบ พักหรู 4 ดาว)</label>
+              <input type="text" value="${escapeHtml(item.value || '')}" onchange="allTours[currentTourIndex].highlights[${index}].value = this.value">
+            </div>
+          </div>
+        `;
+        c.appendChild(div);
+      });
+    }
+
+    function addHighlightItem() {
+      const t = allTours[currentTourIndex];
+      if (!t.highlights) t.highlights = [];
+      t.highlights.push({ icon: "🏝️", label: "หัวข้อไฮไลท์", value: "คำอธิบายสั้นๆ" });
+      renderHighlights(t.highlights);
+    }
+
+    function removeHighlightItem(index) {
+      allTours[currentTourIndex].highlights.splice(index, 1);
+      renderHighlights(allTours[currentTourIndex].highlights);
+    }
+
+    function renderIncludedList(list) {
+      const c = document.getElementById('includedContainer');
+      c.innerHTML = '';
+      list.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'list-row-item';
+        div.innerHTML = `
+          <input type="text" value="${escapeHtml(item)}" onchange="allTours[currentTourIndex].included[${index}] = this.value">
+          <button type="button" class="btn btn-danger btn-sm" onclick="removeIncludedItem(${index})">🗑️ ลบ</button>
+        `;
+        c.appendChild(div);
+      });
+    }
+
+    function addIncludedItem() {
+      const t = allTours[currentTourIndex];
+      if (!t.included) t.included = [];
+      t.included.push("รายการรวมใหม่");
+      renderIncludedList(t.included);
+    }
+
+    function removeIncludedItem(index) {
+      allTours[currentTourIndex].included.splice(index, 1);
+      renderIncludedList(allTours[currentTourIndex].included);
+    }
+
+    function renderExcludedList(list) {
+      const c = document.getElementById('excludedContainer');
+      c.innerHTML = '';
+      list.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'list-row-item';
+        div.innerHTML = `
+          <input type="text" value="${escapeHtml(item)}" onchange="allTours[currentTourIndex].excluded[${index}] = this.value">
+          <button type="button" class="btn btn-danger btn-sm" onclick="removeExcludedItem(${index})">🗑️ ลบ</button>
+        `;
+        c.appendChild(div);
+      });
+    }
+
+    function addExcludedItem() {
+      const t = allTours[currentTourIndex];
+      if (!t.excluded) t.excluded = [];
+      t.excluded.push("รายการไม่รวมใหม่");
+      renderExcludedList(t.excluded);
+    }
+
+    function removeExcludedItem(index) {
+      allTours[currentTourIndex].excluded.splice(index, 1);
+      renderExcludedList(allTours[currentTourIndex].excluded);
+    }
+
+    function collectCurrentFormData() {
+      currentSiteConfig.phone = document.getElementById('cfgPhone').value.trim();
+      currentSiteConfig.lineUrl = document.getElementById('cfgLineUrl').value.trim();
+      currentSiteConfig.lineId = document.getElementById('cfgLineId').value.trim();
+      currentSiteConfig.license = document.getElementById('cfgLicense').value.trim();
+      currentSiteConfig.businessHours = document.getElementById('cfgBusinessHours').value.trim();
+      currentSiteConfig.fontSize = document.getElementById('cfgFontSz').value;
+
+      currentHomeConfig.heroBadge = document.getElementById('hHeroBadge').value.trim();
+      currentHomeConfig.heroTitle = document.getElementById('hHeroTitle').value.trim();
+      currentHomeConfig.heroTitleHighlight = document.getElementById('hHeroTitleHighlight').value.trim();
+      currentHomeConfig.heroSubtitle = document.getElementById('hHeroSubtitle').value.trim();
+      currentHomeConfig.heroImage = document.getElementById('hHeroImage').value.trim();
+
+      const t = allTours[currentTourIndex];
+      if (!t) return;
+
+      t.category = document.getElementById('tCategory').value;
+      t.theme = document.getElementById('tTheme').value;
+      t.countryThai = document.getElementById('tCountryThai').value.trim();
+      t.country = document.getElementById('tCountry').value.trim();
+      t.badge = document.getElementById('tBadge').value.trim();
+      t.duration = document.getElementById('tDuration').value.trim();
+      t.title = document.getElementById('tTitle').value.trim();
+      t.tagline = document.getElementById('tTagline').value.trim();
+      t.price = document.getElementById('tPrice').value.trim();
+      t.priceUnit = document.getElementById('tPriceUnit').value.trim();
+      t.singleSupplement = document.getElementById('tSingleSupplement').value.trim();
+      t.airline = document.getElementById('tAirline').value.trim();
+      t.programPdf = document.getElementById('tProgramPdf').value.trim();
+      t.priceNote = document.getElementById('tPriceNote').value.trim();
+
+      t.heroImage = document.getElementById('tHeroImage').value.trim();
+      t.cardImage = document.getElementById('tCardImage').value.trim() || t.heroImage;
+    }
+
+    function compressImageFile(file, maxWidth = 1400, quality = 0.8, callback) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          let w = img.width, h = img.height;
+          if (w > maxWidth) {
+            h = Math.round((h * maxWidth) / w);
+            w = maxWidth;
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          callback(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleFileUpload(input, targetInputId, previewImgId) {
+      const file = input.files[0];
+      if (!file) return;
+      compressImageFile(file, 1400, 0.8, function(base64) {
+        document.getElementById(targetInputId).value = base64;
+        document.getElementById(previewImgId).src = base64;
+        showToast('📁 อัปโหลดรูปภาพสำเร็จ!');
+      });
+    }
+
+    function updatePreview(inputId, imgId) {
+      const val = document.getElementById(inputId).value;
+      document.getElementById(imgId).src = safeImageUrl(val) || 'https://via.placeholder.com/600x300?text=No+Image';
+    }
+
+    function renderItinerary(list) {
+      const c = document.getElementById('itineraryContainer');
+      c.innerHTML = '';
+      list.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'item-card';
+        div.innerHTML = `
+          <div class="item-hdr">
+            <span class="item-num">วันที่ ${escapeHtml(item.day || (index + 1))}</span>
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeItineraryDay(${index})">🗑️ ลบวัน</button>
+          </div>
+          <div class="form-grid">
+            <div class="form-group"><label>วันที่</label><input type="number" value="${escapeHtml(item.day || (index + 1))}" onchange="allTours[currentTourIndex].itinerary[${index}].day = parseInt(this.value)"></div>
+            <div class="form-group" style="grid-column: span 2;"><label>เส้นทาง</label><input type="text" value="${escapeHtml(item.route || '')}" onchange="allTours[currentTourIndex].itinerary[${index}].route = this.value"></div>
+            <div class="form-group full"><label>รายละเอียด</label><textarea onchange="allTours[currentTourIndex].itinerary[${index}].detail = this.value">${escapeHtml(item.detail || '')}</textarea></div>
+            <div class="form-group"><label>โรงแรม</label><input type="text" value="${escapeHtml(item.hotel || '')}" onchange="allTours[currentTourIndex].itinerary[${index}].hotel = this.value"></div>
+            <div class="form-group"><label>เที่ยวบิน/รถ</label><input type="text" value="${escapeHtml(item.flight || '')}" onchange="allTours[currentTourIndex].itinerary[${index}].flight = this.value"></div>
+          </div>
+        `;
+        c.appendChild(div);
+      });
+    }
+
+    function addItineraryDay() {
+      const t = allTours[currentTourIndex];
+      if (!t.itinerary) t.itinerary = [];
+      t.itinerary.push({ day: t.itinerary.length + 1, route: "เส้นทางใหม่", detail: "รายละเอียด..." });
+      renderItinerary(t.itinerary);
+    }
+
+    function removeItineraryDay(index) {
+      allTours[currentTourIndex].itinerary.splice(index, 1);
+      renderItinerary(allTours[currentTourIndex].itinerary);
+    }
+
+    function renderAttractions(list) {
+      const c = document.getElementById('attractionsContainer');
+      c.innerHTML = '';
+      list.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'item-card';
+        div.innerHTML = `
+          <div class="item-hdr">
+            <span class="item-num">สถานที่ ${index + 1}</span>
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeAttraction(${index})">🗑️ ลบสถานที่</button>
+          </div>
+          <div class="form-grid">
+            <div class="form-group" style="max-width: 100px;"><label>ไอคอน</label><input type="text" value="${escapeHtml(item.icon || '📍')}" onchange="allTours[currentTourIndex].attractions[${index}].icon = this.value"></div>
+            <div class="form-group" style="flex:1;"><label>ชื่อสถานที่</label><input type="text" value="${escapeHtml(item.name || '')}" onchange="allTours[currentTourIndex].attractions[${index}].name = this.value"></div>
+            <div class="form-group full"><label>คำบรรยาย</label><textarea onchange="allTours[currentTourIndex].attractions[${index}].desc = this.value">${escapeHtml(item.desc || '')}</textarea></div>
+          </div>
+        `;
+        c.appendChild(div);
+      });
+    }
+
+    function addAttraction() {
+      const t = allTours[currentTourIndex];
+      if (!t.attractions) t.attractions = [];
+      t.attractions.push({ icon: "🏝️", name: "สถานที่ใหม่", desc: "คำบรรยาย..." });
+      renderAttractions(t.attractions);
+    }
+
+    function removeAttraction(index) {
+      allTours[currentTourIndex].attractions.splice(index, 1);
+      renderAttractions(allTours[currentTourIndex].attractions);
+    }
+
+    function renderGallery(list) {
+      const c = document.getElementById('galleryContainer');
+      c.innerHTML = '';
+      list.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'item-card';
+        div.innerHTML = `
+          <div class="item-hdr"><span class="item-num">รูปที่ ${index + 1}</span><button type="button" class="btn btn-danger btn-sm" onclick="removeGalleryItem(${index})">🗑️ ลบรูปนี้</button></div>
+          <div class="form-group">
+            <label>รูปภาพ (เลือกจาก PC หรือใส่ลิงก์ URL)</label>
+            <div class="upload-row">
+              <label class="btn-upload btn-sm">
+                📁 เลือกรูปจาก PC
+                <input type="file" accept="image/*" style="display:none;" onchange="handleGalleryFile(this, ${index})">
+              </label>
+              <small style="color:var(--text-muted);">หรือวาง URL</small>
+            </div>
+            <input type="text" value="${escapeHtml(item.image || '')}" oninput="updateGalleryUrl(${index}, this.value, this)">
+            <img class="img-preview" src="${escapeHtml(safeImageUrl(item.image || ''))}">
+          </div>
+          <div class="form-group" style="margin-top:0.6rem;"><label>คำอธิบายรูป</label><input type="text" value="${escapeHtml(item.caption || '')}" onchange="allTours[currentTourIndex].gallery[${index}].caption = this.value"></div>
+        `;
+        c.appendChild(div);
+      });
+    }
+
+    function handleGalleryFile(input, index) {
+      const file = input.files[0];
+      if (!file) return;
+      compressImageFile(file, 1200, 0.8, function(base64) {
+        allTours[currentTourIndex].gallery[index].image = base64;
+        renderGallery(allTours[currentTourIndex].gallery);
+        showToast('📁 อัปโหลดรูปแกลเลอรี่สำเร็จ!');
+      });
+    }
+
+    function updateGalleryUrl(index, val, inputEl) {
+      allTours[currentTourIndex].gallery[index].image = val;
+      inputEl.parentElement.querySelector('img').src = safeImageUrl(val);
+    }
+
+    function handleGalleryUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
+      compressImageFile(file, 1200, 0.8, function(base64) {
+        const t = allTours[currentTourIndex];
+        if (!t.gallery) t.gallery = [];
+        t.gallery.push({ image: base64, caption: "บรรยากาศการเดินทาง" });
+        renderGallery(t.gallery);
+        showToast('📁 เพิ่มและอัปโหลดรูปสำเร็จ!');
+      });
+    }
+
+    function addGalleryUrlItem() {
+      const t = allTours[currentTourIndex];
+      if (!t.gallery) t.gallery = [];
+      t.gallery.push({ image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80", caption: "ภาพบรรยากาศ" });
+      renderGallery(t.gallery);
+    }
+
+    function removeGalleryItem(index) {
+      allTours[currentTourIndex].gallery.splice(index, 1);
+      renderGallery(allTours[currentTourIndex].gallery);
+    }
+
+    function openNewTourModal() { document.getElementById('newTourModal').classList.add('open'); }
+    function closeNewTourModal() { document.getElementById('newTourModal').classList.remove('open'); }
+
+    function confirmCreateTour() {
+      let slug = document.getElementById('mTourId').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+      const cat = document.getElementById('mTourCategory').value;
+      const th = document.getElementById('mTourNameThai').value.trim();
+      const en = document.getElementById('mTourNameEn').value.trim();
+      const pr = document.getElementById('mTourPrice').value.trim();
+      if (!slug) slug = 'tour-' + Date.now();
+      if (!th) { alert('กรุณาระบุชื่อทัวร์'); return; }
+
+      collectCurrentFormData();
+      allTours.push({
+        id: slug, status: 'active', category: cat, country: en || th, countryThai: th,
+        title: `ทัวร์${th} พักผ่อนสุดคุ้ม`, badge: '🌟 NEW TRIP', tagline: 'โปรแกรมสุดพิเศษ',
+        price: pr || '15,900', priceUnit: 'บาท / ท่าน', duration: '3 วัน 2 คืน', airline: 'รถตู้ VIP',
+        heroImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80',
+        cardImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80',
+        highlights: [
+          { icon: "🏝️", label: "3 วัน 2 คืน", value: "เที่ยวครบ พักหรู 4 ดาว" },
+          { icon: "⛵", label: "เรือ Speedboat", value: "ทัวร์เกาะพีพี - อ่าวมาหยา" },
+          { icon: "🚐", label: "รถตู้ VIP", value: "รับส่งสนามบิน" },
+          { icon: "💰", label: "8,900 ฿/ท่าน", value: "พักเดี่ยวเพิ่ม 2,500 ฿" }
+        ],
+        itinerary: [{ day: 1, route: 'วันแรก', detail: 'เดินทาง...' }],
+        included: ['รถรับส่ง', 'ที่พัก'], excluded: ['ตั๋วเครื่องบิน'], attractions: [{ icon: '📍', name: 'จุดชมวิว', desc: 'สวยงาม' }], gallery: []
+      });
+      currentTourIndex = allTours.length - 1;
+      renderToursTable();
+      populateTourSelect();
+      loadTourToForm(currentTourIndex);
+      updateStats();
+      closeNewTourModal();
+      showToast('✨ เพิ่มแพ็กเกจทัวร์ใหม่สำเร็จ!');
+    }
+
+    function deleteCurrentTour() {
+      deleteTourByIndex(currentTourIndex);
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.style.display = 'flex';
+      setTimeout(() => { t.style.display = 'none'; }, 2500);
+    }
+
+    function saveAll(openPreview = false) {
+      collectCurrentFormData();
+      localStorage.setItem('all_tours_data', JSON.stringify(allTours));
+      localStorage.setItem('site_config', JSON.stringify(currentSiteConfig));
+      localStorage.setItem('home_config', JSON.stringify(currentHomeConfig));
+      renderToursTable();
+      showToast('✅ บันทึกฉบับร่างไว้ในเบราว์เซอร์นี้แล้ว');
+
+      if (openPreview) {
+        setTimeout(() => { window.open('index.html', '_blank'); }, 300);
+      }
+    }
+
+    function exportDataJs() {
+      collectCurrentFormData();
+      const code = `const siteConfig = ${JSON.stringify(currentSiteConfig, null, 2)};\n\n` +
+                   `const homeConfig = ${JSON.stringify(currentHomeConfig, null, 2)};\n\n` +
+                   `const defaultTours = ${JSON.stringify(allTours, null, 2)};\n\n` +
+                   `const defaultSiteData = defaultTours[0];\n\n` +
+                   `if (typeof window !== "undefined") {\n  window.siteConfig = siteConfig;\n  window.homeConfig = homeConfig;\n  window.defaultTours = defaultTours;\n  window.defaultSiteData = defaultSiteData;\n}\n`;
+      const blob = new Blob([code], { type: 'application/javascript;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'data.js';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+      showToast('📥 ดาวน์โหลด data.js ใหม่เรียบร้อย!');
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

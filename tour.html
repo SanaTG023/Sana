@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>รายละเอียดโปรแกรมทัวร์ | Nay journey</title>
+  <meta name="description" content="ทัวร์กลุ่มเล็กๆ ที่ให้ทุกการเดินทางมีความหมาย">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="data.js"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 5.5rem; -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #1a1a2e; background: #f8f6f3; overflow-x: hidden; line-height: 1.7;
+      -webkit-tap-highlight-color: transparent; padding-bottom: env(safe-area-inset-bottom);
+    }
+    a { text-decoration: none; color: inherit; }
+    img { max-width: 100%; height: auto; display: block; }
+
+    :root {
+      --primary: #e8a838;
+      --primary-dark: #d4912a;
+      --primary-rgb: 232, 168, 56;
+      --primary-soft: #fff7e7;
+      --dark: #1a1a2e;
+      --line-green: #06c755;
+      --line-green-dark: #05b04a;
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.9rem 2.5rem; background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+      transition: background .4s, box-shadow .4s, padding .3s;
+    }
+    .navbar.scrolled {
+      background: rgba(255,255,255,0.96); box-shadow: 0 4px 25px rgba(0,0,0,0.08);
+      padding: 0.75rem 2.5rem;
+    }
+    .nav-logo { font-weight: 800; font-size: 1.25rem; color: #fff; transition: color .4s; }
+    .navbar.scrolled .nav-logo { color: var(--dark); }
+    .nav-logo em { font-style: normal; color: var(--primary); }
+    .nav-links { display: flex; gap: 1.6rem; list-style: none; align-items: center; }
+    .nav-links a {
+      font-weight: 500; font-size: 0.92rem; color: rgba(255,255,255,0.92);
+      position: relative; transition: color .3s;
+    }
+    .navbar.scrolled .nav-links a { color: #444; }
+    .nav-links a:hover { color: var(--primary); }
+    .nav-back-home {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      background: rgba(255,255,255,0.15); padding: 0.45rem 1rem;
+      border-radius: 50px; font-size: 0.85rem; font-weight: 600;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    .navbar.scrolled .nav-back-home {
+      background: #f1f5f9; color: var(--dark); border-color: #cbd5e1;
+    }
+    .nav-cta {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff !important; padding: 0.55rem 1.4rem; border-radius: 50px;
+      font-weight: 700; box-shadow: 0 4px 15px rgba(var(--primary-rgb),0.3);
+      transition: transform .3s;
+    }
+    .nav-cta:hover { transform: translateY(-2px); }
+
+    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 8px; }
+    .hamburger span { width: 26px; height: 2.5px; background: #fff; border-radius: 3px; transition: background .3s; }
+    .navbar.scrolled .hamburger span { background: var(--dark); }
+
+    /* Mobile Drawer */
+    .mobile-drawer {
+      visibility: hidden; pointer-events: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 1001; backdrop-filter: blur(4px); opacity: 0;
+      transition: opacity .3s ease, visibility 0s linear .3s;
+    }
+    .mobile-drawer.open {
+      visibility: visible; pointer-events: auto; opacity: 1;
+      transition: opacity .3s ease;
+    }
+    .drawer-content {
+      position: absolute; top: 0; right: 0; width: min(320px, 85vw); height: 100%;
+      background: #fff; padding: 5rem 1.8rem 2rem; display: flex; flex-direction: column; gap: 0.5rem;
+      transform: translateX(100%); transition: transform .35s ease;
+      box-shadow: -10px 0 30px rgba(0,0,0,0.15);
+    }
+    .mobile-drawer.open .drawer-content { transform: translateX(0); }
+    .drawer-close {
+      position: absolute; top: 1.2rem; right: 1.2rem; width: 40px; height: 40px;
+      border-radius: 50%; border: none; background: #f1f5f9; font-size: 1.2rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .drawer-links a {
+      display: block; padding: 0.9rem 1rem; font-weight: 600; font-size: 1.05rem;
+      color: var(--dark); border-radius: 10px; transition: background-color .2s ease, transform .2s ease;
+    }
+    .drawer-links a:hover { background: #f1f5f9; }
+    .drawer-links a:active { transform: scale(.98); }
+    .drawer-cta {
+      margin-top: 1rem; text-align: center;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff !important; padding: 0.9rem !important; border-radius: 12px; font-weight: 700;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative; min-height: 90svh;
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; background-size: cover; background-position: center;
+      transform: scale(1.08); will-change: transform;
+    }
+    .hero-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(10,10,30,0.55) 0%, rgba(10,10,30,0.3) 50%, rgba(10,10,30,0.85) 100%);
+    }
+    .hero-content {
+      position: relative; z-index: 2; text-align: center; color: #fff;
+      padding: 6rem 1.5rem 3rem; max-width: 860px; width: 100%;
+    }
+    .hero-badge {
+      display: inline-block; background: rgba(var(--primary-rgb),0.22); border: 1px solid rgba(var(--primary-rgb),0.5);
+      color: var(--primary); padding: 0.4rem 1.2rem; border-radius: 50px;
+      font-size: 0.85rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 1.2rem;
+      backdrop-filter: blur(10px);
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif; font-size: clamp(2.5rem, 7vw, 4.8rem);
+      font-weight: 700; line-height: 1.15; margin-bottom: 0.6rem;
+      text-shadow: 0 4px 35px rgba(0,0,0,0.35);
+    }
+    .hero-subtitle {
+      font-size: clamp(1.05rem, 2.5vw, 1.35rem); font-weight: 300; opacity: 0.95; margin-bottom: 1.2rem;
+    }
+    .hero-price-badge {
+      display: inline-flex; align-items: baseline; gap: 0.3rem;
+      background: rgba(var(--primary-rgb),0.25); border: 1px solid rgba(var(--primary-rgb),0.5);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      padding: 0.6rem 2rem; border-radius: 16px; margin-bottom: 2rem;
+    }
+    .hero-price-badge .amt {
+      font-size: clamp(1.8rem, 4vw, 2.3rem); font-weight: 900; color: var(--primary);
+    }
+    .hero-price-badge .unit {
+      font-size: 1rem; color: rgba(255,255,255,0.85); font-weight: 500;
+    }
+    .hero-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 0.9rem 2rem; border-radius: 50px; font-weight: 700; font-size: 0.98rem;
+      border: none; cursor: pointer; transition: transform .22s ease, box-shadow .3s ease, background-color .3s ease, border-color .3s ease; font-family: inherit;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff; box-shadow: 0 4px 20px rgba(var(--primary-rgb),0.4);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(var(--primary-rgb),0.5); }
+    .btn-outline {
+      background: transparent; color: #fff; border: 2px solid rgba(255,255,255,0.6);
+    }
+    .btn-outline:hover { background: rgba(255,255,255,0.15); border-color: #fff; }
+
+    /* ── Highlights ── */
+    .highlights {
+      display: grid; grid-template-columns: repeat(4, 1fr); max-width: 1100px;
+      margin: -2.8rem auto 0; position: relative; z-index: 10; padding: 0 1.2rem;
+    }
+    .hl-card {
+      background: rgba(255,255,255,0.92); backdrop-filter: blur(16px);
+      padding: 1.8rem 1.2rem; text-align: center; border: 1px solid rgba(255,255,255,0.6);
+      transition: transform .3s, box-shadow .3s;
+    }
+    .hl-card:first-child { border-radius: 16px 0 0 16px; }
+    .hl-card:last-child { border-radius: 0 16px 16px 0; }
+    .hl-card:hover { transform: translateY(-5px); box-shadow: 0 12px 35px rgba(0,0,0,0.1); }
+    .hl-icon { font-size: 2rem; margin-bottom: 0.4rem; }
+    .hl-label { font-weight: 700; font-size: 0.98rem; color: var(--dark); }
+    .hl-value { font-size: 0.85rem; color: #666; margin-top: 0.2rem; }
+
+    /* ── Sections ── */
+    section { padding: 5rem 1.5rem; }
+    .sec-hdr { text-align: center; max-width: 720px; margin: 0 auto 3.5rem; }
+    .sec-tag {
+      display: inline-block; color: var(--primary); font-weight: 800; font-size: 0.85rem;
+      letter-spacing: 2px; text-transform: uppercase; margin-bottom: 0.6rem;
+    }
+    .sec-title { font-size: clamp(1.8rem, 4vw, 2.7rem); font-weight: 800; line-height: 1.3; margin-bottom: 0.8rem; }
+    .sec-desc { font-size: 1.05rem; color: #666; line-height: 1.8; }
+
+    /* ── Itinerary Timeline ── */
+    .itin-sec { background: #fff; }
+    .itin-wrap { max-width: 920px; margin: 0 auto; }
+    .itin-tl { position: relative; padding-left: 60px; }
+    .itin-tl::before {
+      content: ''; position: absolute; left: 24px; top: 0; bottom: 0; width: 3px;
+      background: linear-gradient(180deg, var(--primary), var(--primary-soft), var(--primary)); border-radius: 3px;
+    }
+    .itin-day {
+      position: relative; margin-bottom: 1.5rem; padding: 1.6rem 1.8rem;
+      background: linear-gradient(135deg, #fff, var(--primary-soft)); border: 1px solid rgba(var(--primary-rgb),0.2);
+      border-radius: 18px; transition: transform .3s, box-shadow .3s;
+    }
+    .itin-day:hover { transform: translateX(6px); box-shadow: 0 10px 35px rgba(0,0,0,0.06); }
+    .itin-day:last-child { margin-bottom: 0; }
+    .itin-num {
+      position: absolute; left: -60px; top: 1.6rem; width: 48px; height: 48px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(var(--primary-rgb),0.4); z-index: 1;
+    }
+    .itin-lbl { font-size: 0.75rem; font-weight: 800; color: var(--primary); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 0.3rem; }
+    .itin-route { font-size: 1.15rem; font-weight: 800; color: var(--dark); margin-bottom: 0.4rem; }
+    .itin-detail { font-size: 0.92rem; color: #555; line-height: 1.7; }
+    .itin-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.8rem; }
+    .itin-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.9rem;
+      border-radius: 50px; font-size: 0.82rem; font-weight: 700;
+    }
+    .itin-hotel { background: rgba(var(--primary-rgb),0.12); color: var(--primary-dark); }
+    .itin-flight { background: rgba(59,130,246,0.1); color: #2563eb; }
+
+    /* ── Price Section ── */
+    .price-sec { background: linear-gradient(180deg, #f8f6f3, #fff); }
+    .price-grid {
+      max-width: 1040px; margin: 0 auto; display: grid; grid-template-columns: 1fr 340px;
+      gap: 2.5rem; align-items: start;
+    }
+    .price-box-title { font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .price-box-title.inc { color: #16a34a; }
+    .price-box-title.exc { color: #dc2626; }
+    .price-list { list-style: none; margin-bottom: 2.5rem; }
+    .price-list li {
+      display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.6rem 0;
+      font-size: 0.93rem; color: #444; border-bottom: 1px solid rgba(0,0,0,0.04);
+    }
+    .price-list li:last-child { border-bottom: none; }
+    .price-list .ci {
+      width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0; margin-top: 2px; font-size: 0.75rem; font-weight: 800;
+    }
+    .price-list.inc .ci { background: rgba(22,163,74,0.12); color: #16a34a; }
+    .price-list.exc .ci { background: rgba(220,38,38,0.12); color: #dc2626; }
+
+    .price-card {
+      position: sticky; top: 100px; background: linear-gradient(135deg, var(--dark), #262645);
+      color: #fff; border-radius: 24px; padding: 2.5rem 2rem; text-align: center;
+      box-shadow: 0 20px 60px rgba(26,26,46,0.3);
+    }
+    .pc-label { font-size: 0.85rem; color: rgba(255,255,255,0.65); margin-bottom: 0.2rem; }
+    .pc-amount { font-size: 3.2rem; font-weight: 900; color: var(--primary); line-height: 1; margin-bottom: 0.1rem; }
+    .pc-unit { font-size: 0.9rem; color: rgba(255,255,255,0.65); margin-bottom: 1rem; }
+    .pc-single {
+      background: rgba(var(--primary-rgb),0.15); border: 1px solid rgba(var(--primary-rgb),0.3);
+      border-radius: 12px; padding: 0.6rem 1rem; font-size: 0.85rem; color: var(--primary); margin-bottom: 1.5rem;
+    }
+    .price-card .btn { width: 100%; justify-content: center; margin-bottom: 0.7rem; border-radius: 12px; }
+    .btn-gold { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; }
+    .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(var(--primary-rgb),0.5); }
+    .btn-ghost { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.18); }
+    .pc-note { margin-top: 1.2rem; font-size: 0.78rem; color: rgba(255,255,255,0.45); line-height: 1.6; text-align: left; }
+
+    /* ── Attractions ── */
+    .attr-sec { background: var(--dark); color: #fff; overflow: hidden; }
+    .attr-sec .sec-tag { color: var(--primary); }
+    .attr-sec .sec-title { color: #fff; }
+    .attr-sec .sec-desc { color: rgba(255,255,255,0.6); }
+    .attr-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem; max-width: 1100px; margin: 0 auto;
+    }
+    .attr-card {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px; padding: 1.8rem; transition: transform .3s, background .3s;
+    }
+    .attr-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.08); }
+    .attr-icon {
+      width: 56px; height: 56px; background: linear-gradient(135deg, rgba(var(--primary-rgb),0.2), rgba(var(--primary-rgb),0.05));
+      border-radius: 16px; display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1.2rem; font-size: 1.6rem;
+    }
+    .attr-card h4 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .attr-card p { font-size: 0.9rem; color: rgba(255,255,255,0.55); line-height: 1.7; }
+
+    /* ── Gallery ── */
+    .gal-sec { background: #fff; }
+    .gal-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      grid-auto-rows: 220px; gap: 1rem; max-width: 1100px; margin: 0 auto;
+    }
+    .gal-item { border-radius: 16px; overflow: hidden; position: relative; }
+    .gal-item img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s; }
+    .gal-item:hover img { transform: scale(1.08); }
+    .gal-item:first-child { grid-column: span 2; grid-row: span 2; }
+    .gal-ov {
+      position: absolute; inset: 0; background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.6) 100%);
+      opacity: 0; transition: opacity .3s; display: flex; align-items: flex-end; padding: 1.2rem;
+    }
+    .gal-item:hover .gal-ov { opacity: 1; }
+    .gal-ov span { color: #fff; font-weight: 600; font-size: 0.92rem; }
+
+    /* ── Other Tours Bar ── */
+    .other-tours-sec {
+      background: #fdfcfa; border-top: 1px solid #f1f5f9; padding: 4rem 1.5rem;
+    }
+    .other-tours-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem; max-width: 1100px; margin: 0 auto;
+    }
+    .ot-card {
+      background: #fff; border-radius: 16px; overflow: hidden;
+      border: 1px solid #e2e8f0; transition: transform .3s, box-shadow .3s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    }
+    .ot-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+    .ot-img { height: 160px; width: 100%; object-fit: cover; }
+    .ot-body { padding: 1.2rem; }
+    .ot-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 0.4rem; color: var(--dark); }
+    .ot-price { color: var(--primary-dark); font-weight: 800; font-size: 1.1rem; }
+
+    /* ── CTA ── */
+    .cta-sec {
+      background: linear-gradient(135deg, var(--dark), #262645);
+      text-align: center; color: #fff; position: relative; overflow: hidden; padding: 5rem 1.5rem;
+    }
+    .cta-sec::before {
+      content: ''; position: absolute; width: 450px; height: 450px;
+      background: radial-gradient(circle, rgba(var(--primary-rgb),0.14), transparent 70%);
+      top: -150px; right: -50px; border-radius: 50%;
+    }
+    .cta-sec .sec-tag { color: var(--primary); }
+    .cta-title { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; margin-bottom: 0.8rem; }
+    .cta-desc { font-size: 1.1rem; color: rgba(255,255,255,0.65); max-width: 550px; margin: 0 auto 1.8rem; line-height: 1.8; }
+    .cta-phone { font-size: clamp(1.5rem, 3.5vw, 2.3rem); font-weight: 800; margin-bottom: 2rem; }
+    .cta-phone a { color: var(--primary); }
+    .cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-line { background: var(--line-green); color: #fff; }
+    .btn-line:hover { background: var(--line-green-dark); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(6,199,85,0.4); }
+
+    /* ── Footer ── */
+    footer {
+      background: #111128; color: rgba(255,255,255,0.5);
+      text-align: center; padding: 2.2rem 1.5rem; font-size: 0.85rem;
+    }
+    footer a { color: var(--primary); }
+    footer .lic { margin-top: 0.5rem; font-size: 0.8rem; }
+
+    /* ── Mobile Booking Bar ── */
+    .mobile-booking-bar {
+      display: none; position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(255,255,255,0.96); backdrop-filter: blur(15px);
+      border-top: 1px solid rgba(0,0,0,0.08);
+      padding: 0.65rem 1rem max(0.65rem, env(safe-area-inset-bottom));
+      z-index: 990; box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+      align-items: center; justify-content: space-between;
+    }
+    .mbb-price-box { display: flex; flex-direction: column; }
+    .mbb-label { font-size: 0.72rem; color: #777; line-height: 1; }
+    .mbb-price { font-size: 1.25rem; font-weight: 900; color: #1a1a2e; }
+    .mbb-price span { color: var(--primary-dark); font-size: 0.85rem; font-weight: 600; }
+    .mbb-actions { display: flex; gap: 0.5rem; }
+    .mbb-btn {
+      padding: 0.55rem 0.9rem; border-radius: 10px; font-size: 0.82rem;
+      font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem;
+    }
+    .mbb-btn-tel { background: #f1f5f9; color: var(--dark); border: 1px solid #cbd5e1; }
+    .mbb-btn-line { background: var(--line-green); color: #fff; }
+
+    .fade-up { opacity: 1; transform: translateY(0); transition: opacity .5s ease-out, transform .5s ease-out; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+
+    @media (max-width: 1024px) {
+      .navbar { padding: 0.8rem 1.8rem; }
+      .price-grid { grid-template-columns: 1fr 300px; gap: 2rem; }
+    }
+    @media (max-width: 820px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .highlights { grid-template-columns: repeat(2, 1fr); margin-top: -2rem; }
+      .hl-card:first-child { border-radius: 16px 0 0 0; }
+      .hl-card:nth-child(2) { border-radius: 0 16px 0 0; }
+      .hl-card:nth-child(3) { border-radius: 0 0 0 16px; }
+      .hl-card:last-child { border-radius: 0 0 16px 0; }
+      .price-grid { grid-template-columns: 1fr; }
+      .price-card { position: static; max-width: 500px; margin: 0 auto; }
+      .gal-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 190px; }
+      .gal-item:first-child { grid-column: span 2; grid-row: span 1; }
+    }
+    @media (max-width: 600px) {
+      body { padding-bottom: 70px; }
+      section { padding: 3.5rem 1rem; }
+      .navbar { padding: 0.7rem 1rem; }
+      .hero-content { padding: 5rem 1rem 2rem; }
+      .hero-buttons { flex-direction: column; width: 100%; max-width: 320px; margin: 0 auto; }
+      .hero-buttons .btn { width: 100%; }
+      .highlights { grid-template-columns: 1fr 1fr; gap: 0; margin-top: -1.5rem; padding: 0 0.8rem; }
+      .hl-card { padding: 1.2rem 0.6rem; }
+      .itin-tl { padding-left: 48px; }
+      .itin-tl::before { left: 18px; }
+      .itin-num { left: -48px; width: 38px; height: 38px; font-size: 0.95rem; }
+      .itin-day { padding: 1.2rem 1rem; }
+      .attr-grid { grid-template-columns: 1fr; }
+      .gal-grid { grid-template-columns: 1fr; grid-auto-rows: 210px; }
+      .gal-item:first-child { grid-column: span 1; }
+      .cta-btns { flex-direction: column; width: 100%; max-width: 300px; margin: 0 auto; }
+      .cta-btns .btn { width: 100%; }
+      .mobile-booking-bar { display: flex; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <a href="index.html" class="nav-logo" id="navLogo">Nay <em>journey</em></a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-back-home">🏠 หน้าหลัก</a></li>
+      <li><a href="#itinerary">โปรแกรมทัวร์</a></li>
+      <li><a href="#pricing">ราคา</a></li>
+      <li><a href="#attractions">สถานที่เที่ยว</a></li>
+      <li><a href="#gallery">แกลเลอรี่</a></li>
+      <li><a href="#contact" class="nav-cta">จองเลย</a></li>
+    </ul>
+    <button class="hamburger" id="hamburgerBtn" aria-label="เปิดเมนู">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Drawer -->
+  <div class="mobile-drawer" id="mobileDrawer">
+    <div class="drawer-content">
+      <button class="drawer-close" id="drawerClose">✕</button>
+      <div class="drawer-links">
+        <a href="index.html" class="drawer-link" style="color:var(--primary); font-weight:800;">🏠 กลับหน้าหลัก</a>
+        <a href="#itinerary" class="drawer-link">โปรแกรมทัวร์</a>
+        <a href="#pricing" class="drawer-link">ราคา</a>
+        <a href="#attractions" class="drawer-link">สถานที่เที่ยว</a>
+        <a href="#gallery" class="drawer-link">แกลเลอรี่</a>
+        <a href="#contact" class="drawer-cta drawer-link">จองเลย</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="hero" id="hero">
+    <div class="hero-bg" id="heroBg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content fade-up" id="heroContent"></div>
+  </section>
+
+  <!-- Highlights -->
+  <div class="highlights" id="highlights"></div>
+
+  <!-- Itinerary -->
+  <section class="itin-sec" id="itinerary">
+    <div class="sec-hdr fade-up" id="itinHeader"></div>
+    <div class="itin-wrap"><div class="itin-tl" id="itinTimeline"></div></div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="price-sec" id="pricing">
+    <div class="sec-hdr fade-up">
+      <div class="sec-tag">💰 รายละเอียดราคา</div>
+      <h2 class="sec-title">ราคารวม & ไม่รวม</h2>
+    </div>
+    <div class="price-grid" id="priceGrid"></div>
+  </section>
+
+  <!-- Attractions -->
+  <section class="attr-sec" id="attractions">
+    <div class="sec-hdr fade-up">
+      <div class="sec-tag">🎯 ไฮไลท์เส้นทาง</div>
+      <h2 class="sec-title">สถานที่ท่องเที่ยวในทริป</h2>
+      <p class="sec-desc">ธรรมชาติและวัฒนธรรมอันน่าประทับใจที่คุณจะได้สัมผัส</p>
+    </div>
+    <div class="attr-grid" id="attrGrid"></div>
+  </section>
+
+  <!-- Gallery -->
+  <section class="gal-sec" id="gallery">
+    <div class="sec-hdr fade-up">
+      <div class="sec-tag">📸 แกลเลอรี่</div>
+      <h2 class="sec-title">ภาพบรรยากาศ<span id="galCountry"></span></h2>
+      <p class="sec-desc">เก็บความทรงจำที่น่าประทับใจไปกับเรา</p>
+    </div>
+    <div class="gal-grid" id="galGrid"></div>
+  </section>
+
+  <!-- Other Tours -->
+  <section class="other-tours-sec">
+    <div class="sec-hdr fade-up">
+      <div class="sec-tag">🌍 ปลายทางอื่นๆ ที่น่าสนใจ</div>
+      <h2 class="sec-title">สำรวจเส้นทางท่องเที่ยวอื่นๆ</h2>
+    </div>
+    <div class="other-tours-grid" id="otherToursGrid"></div>
+  </section>
+
+  <!-- CTA Contact -->
+  <section class="cta-sec" id="contact">
+    <div class="sec-hdr fade-up" id="ctaContent" style="margin-bottom: 1.5rem;"></div>
+  </section>
+
+  <!-- Footer -->
+  <footer id="footerEl"></footer>
+
+  <!-- Mobile Sticky Bar -->
+  <div class="mobile-booking-bar">
+    <div class="mbb-price-box">
+      <span class="mbb-label">ราคาท่านละ</span>
+      <div class="mbb-price" id="mbbPrice">0 <span>฿</span></div>
+    </div>
+    <div class="mbb-actions">
+      <a href="tel:0829907755" class="mbb-btn mbb-btn-tel" id="mbbTel">📞 โทร</a>
+      <a href="https://lin.ee/vhU6h6G" class="mbb-btn mbb-btn-line" id="mbbLine" target="_blank">💬 ทัก Line</a>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+      }
+      function safeUrl(value, kind = 'link') {
+        const url = String(value ?? '').trim();
+        if (!url || /[\u0000-\u001f\u007f]/.test(url)) return '';
+        if (kind === 'image' && /^data:image\/(?:png|jpe?g|gif|webp);base64,[a-z0-9+/]+=*$/i.test(url)) return escapeHtml(url);
+        if (/^(?:https?:|tel:|mailto:)/i.test(url)) {
+          try {
+            const parsed = new URL(url, document.baseURI);
+            const allowedProtocols = kind === 'image' ? ['http:', 'https:'] : ['http:', 'https:', 'tel:', 'mailto:'];
+            if (allowedProtocols.includes(parsed.protocol)) return escapeHtml(url);
+          } catch {}
+          return '';
+        }
+        if (/^(?:[./?#]|[^:/?#]+(?:[/?#]|$))/.test(url) && !url.startsWith('//') && !url.startsWith('\\')) return escapeHtml(url);
+        return '';
+      }
+      let allTours = [];
+      const saved = localStorage.getItem('all_tours_data');
+      if (saved) {
+        try { allTours = JSON.parse(saved); } catch(e) { allTours = []; }
+      }
+      if (!allTours.length && typeof defaultTours !== 'undefined') {
+        allTours = defaultTours;
+      }
+
+      let cfg = typeof siteConfig !== 'undefined' ? Object.assign({}, siteConfig) : {
+        siteName: "Nay", phone: "082-990-7755", lineUrl: "https://lin.ee/vhU6h6G", lineId: "@grouplek.explorer", license: "ใบอนุญาตเลขที่ 11/13245", website: "https://www.grouplektour.com", businessHours: "จันทร์ - อาทิตย์ 08:30 - 20:00 น.", fontSize: "16px"
+      };
+      try {
+        const savedCfg = localStorage.getItem('site_config');
+        if (savedCfg) cfg = Object.assign(cfg, JSON.parse(savedCfg));
+      } catch(e) {}
+
+      if (cfg.fontSize) {
+        document.documentElement.style.fontSize = cfg.fontSize;
+      }
+
+      const brandName = (cfg.siteName || "Nay").replace(/journey/gi, "").trim() || "Nay";
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const tourId = urlParams.get('id');
+
+      let currentTour = allTours.find(t => t.id === tourId) || allTours[0] || (typeof defaultSiteData !== 'undefined' ? defaultSiteData : null);
+      if (!currentTour && typeof defaultTours !== 'undefined' && defaultTours.length > 0) {
+        currentTour = defaultTours[0];
+      }
+
+      if (!currentTour) {
+        document.body.innerHTML = `<div style="text-align:center; padding:5rem; font-family:'Noto Sans Thai';"><h2>ไม่พบข้อมูลโปรแกรมทัวร์</h2><p><a href="index.html">กลับสู่หน้าหลัก</a></p></div>`;
+        return;
+      }
+
+      const tourThemes = {
+        sea: { primary: '#28a9a1', dark: '#167b78', rgb: '40, 169, 161', soft: '#e8f7f5' },
+        mountain: { primary: '#58a9dc', dark: '#28749f', rgb: '88, 169, 220', soft: '#eaf5fc' },
+        forest: { primary: '#78a84c', dark: '#4e7831', rgb: '120, 168, 76', soft: '#eff6e8' },
+        classic: { primary: '#e8a838', dark: '#d4912a', rgb: '232, 168, 56', soft: '#fff7e7' }
+      };
+      function getTourTheme(tour) {
+        let theme = tour.theme;
+        if (!Object.prototype.hasOwnProperty.call(tourThemes, theme)) {
+          const destination = `${tour.id || ''} ${tour.countryThai || ''} ${tour.country || ''}`.toLocaleLowerCase('th');
+          if (/phuket|ภูเก็ต|พังงา|เกาะ|ทะเล/.test(destination)) theme = 'sea';
+          else if (/chiang.?mai|เชียงใหม่|ม่อนแจ่ม|ป่า|ธรรมชาติ/.test(destination)) theme = 'forest';
+          else if (/kazakhstan|คาซัค|ภูเขา|หิมะ|เทือกเขา/.test(destination)) theme = 'mountain';
+          else theme = 'classic';
+        }
+        return tourThemes[theme];
+      }
+      const theme = getTourTheme(currentTour);
+      document.documentElement.style.setProperty('--primary', theme.primary);
+      document.documentElement.style.setProperty('--primary-dark', theme.dark);
+      document.documentElement.style.setProperty('--primary-rgb', theme.rgb);
+      document.documentElement.style.setProperty('--primary-soft', theme.soft);
+
+      document.title = `${currentTour.countryThai || currentTour.country} | ${cfg.siteName || 'Nay journey'}`;
+
+      document.querySelectorAll('.nav-logo, #navLogo').forEach(el => {
+        el.innerHTML = `${escapeHtml(brandName)} <em>journey</em>`;
+      });
+
+      const heroImage = safeUrl(currentTour.heroImage, 'image').replace(/&amp;/g, '&').replace(/["\\\n\r]/g, encodeURIComponent);
+      document.getElementById('heroBg').style.backgroundImage = heroImage ? `url("${heroImage}")` : 'none';
+      document.getElementById('heroContent').innerHTML = `
+        <div class="hero-badge">${escapeHtml(currentTour.badge || '✨ FEATURED TOUR')}</div>
+        <h1 class="hero-title">${escapeHtml(currentTour.countryThai || currentTour.country)}</h1>
+        <p class="hero-subtitle">${escapeHtml(currentTour.title || currentTour.tagline || '')}</p>
+        <div class="hero-price-badge">
+          <span class="amt">฿${escapeHtml(currentTour.price || '0')}</span>
+          <span class="unit">${escapeHtml(currentTour.priceUnit || 'บาท / ท่าน')}</span>
+        </div>
+        <div class="hero-buttons">
+          <a href="#itinerary" class="btn btn-primary">🗺️ ดูโปรแกรมรายวัน</a>
+          <a href="${safeUrl(cfg.lineUrl)}" class="btn btn-outline" target="_blank" rel="noopener noreferrer">💬 สอบถามจองทริปนี้</a>
+        </div>
+      `;
+
+      const hlContainer = document.getElementById('highlights');
+      if (currentTour.highlights && currentTour.highlights.length) {
+        hlContainer.innerHTML = currentTour.highlights.map(h => `
+          <div class="hl-card fade-up">
+            <div class="hl-icon">${escapeHtml(h.icon || '🌟')}</div>
+            <div class="hl-label">${escapeHtml(h.label || '')}</div>
+            <div class="hl-value">${escapeHtml(h.value || '')}</div>
+          </div>
+        `).join('');
+      } else {
+        hlContainer.style.display = 'none';
+      }
+
+      document.getElementById('itinHeader').innerHTML = `
+        <div class="sec-tag">🗺️ ITINERARY</div>
+        <h2 class="sec-title">กำหนดการเดินทาง (${escapeHtml(currentTour.duration || 'หลายวัน')})</h2>
+        <p class="sec-desc">${escapeHtml(currentTour.tagline || 'รายละเอียดการเดินทางตลอดทริปแบบละเอียดยิบ')}</p>
+      `;
+
+      const tl = document.getElementById('itinTimeline');
+      if (currentTour.itinerary && currentTour.itinerary.length) {
+        tl.innerHTML = currentTour.itinerary.map(item => `
+          <div class="itin-day fade-up">
+            <div class="itin-num">${escapeHtml(item.day || 1)}</div>
+            <div class="itin-lbl">วันที่ ${escapeHtml(item.day || 1)}</div>
+            <div class="itin-route">${escapeHtml(item.route || '')}</div>
+            <div class="itin-detail">${escapeHtml(item.detail || '')}</div>
+            <div class="itin-badges">
+              ${item.hotel ? `<span class="itin-badge itin-hotel">🏨 โรงแรม: ${escapeHtml(item.hotel)}</span>` : ''}
+              ${item.flight ? `<span class="itin-badge itin-flight">✈️ การเดินทาง: ${escapeHtml(item.flight)}</span>` : ''}
+            </div>
+          </div>
+        `).join('');
+      } else {
+        tl.innerHTML = `<p style="text-align:center; color:#64748b;">กำลังอัปเดตกำหนดการเดินทาง</p>`;
+      }
+
+      const priceGrid = document.getElementById('priceGrid');
+      const incList = (currentTour.included || []).map(i => `<li><span class="ci">✓</span><span>${escapeHtml(i)}</span></li>`).join('');
+      const excList = (currentTour.excluded || []).map(e => `<li><span class="ci">✕</span><span>${escapeHtml(e)}</span></li>`).join('');
+
+      priceGrid.innerHTML = `
+        <div>
+          <div class="price-box-title inc">✅ ราคานี้รวมอะไรบ้าง</div>
+          <ul class="price-list inc">${incList || '<li><span>ระบุรายละเอียดภายหลัง</span></li>'}</ul>
+
+          <div class="price-box-title exc" style="margin-top:2rem;">❌ ราคานี้ไม่รวม</div>
+          <ul class="price-list exc">${excList || '<li><span>ระบุรายละเอียดภายหลัง</span></li>'}</ul>
+        </div>
+
+        <div>
+          <div class="price-card fade-up">
+            <div class="pc-label">อัตราค่าบริการท่านละ</div>
+            <div class="pc-amount">฿${escapeHtml(currentTour.price || '0')}</div>
+            <div class="pc-unit">${escapeHtml(currentTour.priceUnit || 'บาท / ท่าน')}</div>
+            ${currentTour.singleSupplement ? `<div class="pc-single">🛏️ พักเดี่ยวจ่ายเพิ่ม: ฿${escapeHtml(currentTour.singleSupplement)}</div>` : ''}
+            <a href="${safeUrl(cfg.lineUrl)}" class="btn btn-gold" target="_blank" rel="noopener noreferrer">💬 จองทัวร์นี้ผ่าน Line</a>
+            ${currentTour.programPdf && currentTour.programPdf !== '#' ? `<a href="${safeUrl(currentTour.programPdf)}" class="btn btn-ghost" style="margin-top:0.6rem;" target="_blank" rel="noopener noreferrer">📥 ดาวน์โหลดโปรแกรม PDF</a>` : ''}
+            <div class="pc-note">
+              * ${escapeHtml(currentTour.priceNote || 'ราคานี้อาจเปลี่ยนแปลงตามความเหมาะสม กรุณาสอบถามเจ้าหน้าที่ก่อนจอง')}
+            </div>
+          </div>
+        </div>
+      `;
+
+      const attrGrid = document.getElementById('attrGrid');
+      if (currentTour.attractions && currentTour.attractions.length) {
+        attrGrid.innerHTML = currentTour.attractions.map(a => `
+          <div class="attr-card fade-up">
+            <div class="attr-icon">${escapeHtml(a.icon || '📍')}</div>
+            <h4>${escapeHtml(a.name || '')}</h4>
+            <p>${escapeHtml(a.desc || '')}</p>
+          </div>
+        `).join('');
+      } else {
+        document.getElementById('attractions').style.display = 'none';
+      }
+
+      document.getElementById('galCountry').textContent = ` - ${currentTour.countryThai || currentTour.country}`;
+      const galGrid = document.getElementById('galGrid');
+      if (currentTour.gallery && currentTour.gallery.length) {
+        galGrid.innerHTML = currentTour.gallery.map(g => `
+          <div class="gal-item fade-up">
+            <img src="${safeUrl(g.image || '', 'image')}" alt="${escapeHtml(g.caption || '')}" loading="lazy">
+            <div class="gal-ov"><span>${escapeHtml(g.caption || '')}</span></div>
+          </div>
+        `).join('');
+      } else {
+        document.getElementById('gallery').style.display = 'none';
+      }
+
+      const otherTours = allTours.filter(t => t.id !== currentTour.id && t.status !== 'inactive');
+      const otGrid = document.getElementById('otherToursGrid');
+      if (otherTours.length) {
+        otGrid.innerHTML = otherTours.map(t => `
+          <div class="ot-card">
+            <img src="${safeUrl(t.cardImage || t.heroImage, 'image')}" class="ot-img" alt="${escapeHtml(t.countryThai)}">
+            <div class="ot-body">
+              <div class="ot-title">${escapeHtml(t.countryThai || t.country)} — ${escapeHtml(t.duration || '')}</div>
+              <div class="ot-price">฿${escapeHtml(t.price)} <span style="font-size:0.8rem; font-weight:normal; color:#666;">บาท</span></div>
+              <a href="tour.html?id=${encodeURIComponent(String(t.id || ''))}" class="btn btn-primary" style="margin-top:0.8rem; padding:0.4rem 1rem; font-size:0.82rem; width:100%;">ดูโปรแกรมนี้ →</a>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        document.querySelector('.other-tours-sec').style.display = 'none';
+      }
+
+      document.getElementById('ctaContent').innerHTML = `
+        <div class="sec-tag">READY FOR ADVENTURE?</div>
+        <h2 class="cta-title">สนใจร่วมเดินทางทริป ${escapeHtml(currentTour.countryThai || currentTour.country)}?</h2>
+        <p class="cta-desc">สอบถามคิวว่าง ปรึกษาเส้นทาง หรือขอโปรแกรมทัวร์ฉบับเต็ม ติดต่อทีมงานได้ทุกวันครับ</p>
+        <div class="cta-phone">☎ <a href="tel:${cfg.phone.replace(/[^0-9]/g,'')}">${escapeHtml(cfg.phone)}</a></div>
+        <div class="cta-btns">
+          <a href="${safeUrl(cfg.lineUrl)}" class="btn btn-line" target="_blank" rel="noopener noreferrer">💬 Line ${escapeHtml(cfg.lineId)}</a>
+          <a href="tel:${cfg.phone.replace(/[^0-9]/g,'')}" class="btn btn-primary">📞 โทรติดต่อเรา</a>
+        </div>
+      `;
+
+      document.getElementById('footerEl').innerHTML = `
+        <p>© 2570 <a href="${safeUrl(cfg.website)}">${escapeHtml(brandName)} journey</a> — ${escapeHtml(cfg.siteSlogan || 'ชวนเพื่อนเที่ยว')}</p>
+        <p class="lic"><a href="${safeUrl(cfg.website)}">${escapeHtml(cfg.license)}</a> — เปิดให้บริการ ${escapeHtml(cfg.businessHours || '')}</p>
+      `;
+
+      document.getElementById('mbbPrice').innerHTML = `${escapeHtml(currentTour.price || '0')} <span>฿</span>`;
+      document.getElementById('mbbTel').href = `tel:${cfg.phone.replace(/[^0-9]/g,'')}`;
+      document.getElementById('mbbLine').href = cfg.lineUrl;
+
+      const navbar = document.getElementById('navbar');
+      window.addEventListener('scroll', () => {
+        navbar.classList.toggle('scrolled', window.scrollY > 60);
+      }, { passive: true });
+
+      const heroBg = document.getElementById('heroBg');
+      window.addEventListener('scroll', () => {
+        if (window.scrollY < window.innerHeight) {
+          heroBg.style.transform = `scale(1.08) translateY(${window.scrollY * 0.25}px)`;
+        }
+      }, { passive: true });
+
+      const drawer = document.getElementById('mobileDrawer');
+      const hamburger = document.getElementById('hamburgerBtn');
+      const drawerClose = document.getElementById('drawerClose');
+      hamburger.addEventListener('click', () => { drawer.classList.add('open'); document.body.style.overflow = 'hidden'; });
+      drawerClose.addEventListener('click', () => { drawer.classList.remove('open'); document.body.style.overflow = ''; });
+      drawer.addEventListener('click', (e) => { if (e.target === drawer) { drawer.classList.remove('open'); document.body.style.overflow = ''; } });
+      document.querySelectorAll('.drawer-link').forEach(a => a.addEventListener('click', () => { drawer.classList.remove('open'); document.body.style.overflow = ''; }));
+
+      const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vis'); obs.unobserve(e.target); } });
+      }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+      document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+    })();
+  </script>
+</body>
+</html>
