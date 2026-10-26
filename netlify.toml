@@ -1,6 +1,10 @@
 [[edge_functions]]
 function = "protect-admin"
-path = ["/admin.html", "/api/site-data"]
+path = "/admin.html"
+
+[[edge_functions]]
+function = "protect-admin"
+path = "/api/site-data"
 
 [[redirects]]
 from = "/api/site-data"
