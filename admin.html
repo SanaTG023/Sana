@@ -234,6 +234,18 @@
     .save-info strong { color: #fff; }
     .btn:active { transform: translateY(1px) scale(.98); }
     :focus-visible { outline: 3px solid rgba(232,168,56,.45); outline-offset: 2px; }
+    .publisher-controls { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+    .publisher-controls input { width: min(290px, 24vw); }
+    .publisher-status { flex: 1 1 100%; color: #c0b2d0; font-size: .75rem; }
+    .publisher-help { flex: 1 1 100%; max-width: 420px; color: #c0b2d0; font-size: .7rem; line-height: 1.45; }
+    .publisher-help a { color: #efb0dd; }
+    .save-bar { gap: 1rem; }
+    .save-actions { justify-content: flex-end; }
+    @media (max-width: 1100px) {
+      .save-bar { align-items: flex-start; flex-direction: column; gap: .65rem; }
+      .publisher-controls input { width: min(290px, 55vw); }
+      .save-actions { justify-content: flex-start; }
+    }
     @media (max-width: 700px) {
       body { padding-bottom: 150px; }
       header { padding: .8rem 1rem; }
@@ -895,7 +907,15 @@
 
   <div class="save-bar">
     <div class="save-info">
-      💡 <strong>บันทึกฉบับร่าง</strong> เก็บไว้ในเบราว์เซอร์นี้ • ดาวน์โหลด data.js แล้วเผยแพร่เพื่ออัปเดตเว็บให้ผู้เข้าชม
+      💡 <strong>บันทึกฉบับร่าง</strong> เก็บไว้ในเบราว์เซอร์นี้ • SanaOS สามารถเผยแพร่ข้อมูลขึ้นเว็บไซต์ได้โดยตรง
+    </div>
+    <div class="publisher-controls" id="desktopPublishControls" hidden>
+      <input type="password" id="publisherToken" autocomplete="new-password" placeholder="GitHub fine-grained token" aria-label="GitHub fine-grained token">
+      <button type="button" class="btn btn-outline btn-sm" id="savePublisherToken">เชื่อมต่อ GitHub</button>
+      <button type="button" class="btn btn-outline btn-sm" id="clearPublisherToken" hidden>ยกเลิกการเชื่อมต่อ</button>
+      <button type="button" class="btn btn-primary" id="publishWebsite" disabled>เผยแพร่ขึ้นเว็บไซต์</button>
+      <span class="publisher-status" id="publisherStatus" role="status" aria-live="polite"></span>
+      <span class="publisher-help" id="publisherHelp">สร้าง fine-grained token สำหรับ repo SanaTG023/Sana โดยให้สิทธิ์ Contents: Read and write แล้วเชื่อมต่อที่นี่ Token จะถูกเข้ารหัสเก็บไว้ใน Windows<br><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">สร้าง GitHub token</a></span>
     </div>
     <div class="save-actions">
       <button type="button" class="btn btn-outline btn-sm" onclick="exportDataJs()" style="color:#111; background:#fff; border-color:#fff;">📥 ส่งออก data.js</button>
@@ -1550,13 +1570,17 @@
       }
     }
 
-    function exportDataJs() {
-      collectCurrentFormData();
-      const code = `const siteConfig = ${JSON.stringify(currentSiteConfig, null, 2)};\n\n` +
+    function buildDataJs() {
+      return `const siteConfig = ${JSON.stringify(currentSiteConfig, null, 2)};\n\n` +
                    `const homeConfig = ${JSON.stringify(currentHomeConfig, null, 2)};\n\n` +
                    `const defaultTours = ${JSON.stringify(allTours, null, 2)};\n\n` +
                    `const defaultSiteData = defaultTours[0];\n\n` +
                    `if (typeof window !== "undefined") {\n  window.siteConfig = siteConfig;\n  window.homeConfig = homeConfig;\n  window.defaultTours = defaultTours;\n  window.defaultSiteData = defaultSiteData;\n}\n`;
+    }
+
+    function exportDataJs() {
+      collectCurrentFormData();
+      const code = buildDataJs();
       const blob = new Blob([code], { type: 'application/javascript;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = 'data.js';
@@ -1564,6 +1588,89 @@
       showToast('📥 ดาวน์โหลด data.js ใหม่เรียบร้อย!');
     }
 
+    function setPublisherStatus(message) {
+      document.getElementById('publisherStatus').textContent = message;
+    }
+
+    async function refreshPublisherStatus() {
+      const result = await window.sanaosDesktop.getPublisherStatus();
+      if (!result.ok) {
+        setPublisherStatus('Windows ยังไม่พร้อมเข้ารหัส token อย่างปลอดภัย');
+        return;
+      }
+      document.getElementById('publisherToken').hidden = result.configured;
+      document.getElementById('savePublisherToken').hidden = result.configured;
+      document.getElementById('clearPublisherToken').hidden = !result.configured;
+      document.getElementById('publishWebsite').disabled = !result.configured;
+      document.getElementById('publisherHelp').hidden = result.configured;
+      setPublisherStatus(result.configured
+        ? 'เชื่อมต่อแล้ว · SanaTG023/Sana · เผยแพร่ไปยัง branch หลัก'
+        : 'ยังไม่ได้เชื่อมต่อ GitHub · ต้องเชื่อมต่อก่อนเผยแพร่');
+    }
+
+    function setupDesktopPublisher() {
+      if (!window.sanaosDesktop?.isDesktop) return;
+      document.getElementById('desktopPublishControls').hidden = false;
+      document.querySelector('.save-actions [onclick="exportDataJs()"]').hidden = true;
+      document.querySelector('.save-info').innerHTML = '💡 <strong>บันทึกฉบับร่าง</strong> หรือเผยแพร่การเปลี่ยนแปลงไปยังเว็บไซต์ผ่าน GitHub';
+      refreshPublisherStatus().catch(error => setPublisherStatus(`ตรวจสอบสถานะ GitHub ไม่สำเร็จ: ${error.message}`));
+
+      document.getElementById('savePublisherToken').addEventListener('click', async () => {
+        const input = document.getElementById('publisherToken');
+        const button = document.getElementById('savePublisherToken');
+        button.disabled = true;
+        setPublisherStatus('กำลังตรวจสอบ token และสิทธิ์เข้าถึง repository...');
+        try {
+          const result = await window.sanaosDesktop.savePublisherToken(input.value);
+          if (!result.ok) {
+            setPublisherStatus(`เชื่อมต่อไม่สำเร็จ: ${result.message}`);
+            return;
+          }
+          input.value = '';
+          await refreshPublisherStatus();
+          showToast('เชื่อมต่อ GitHub แล้ว');
+        } catch (error) {
+          setPublisherStatus(`เชื่อมต่อไม่สำเร็จ: ${error.message}`);
+        } finally {
+          button.disabled = false;
+        }
+      });
+
+      document.getElementById('clearPublisherToken').addEventListener('click', async () => {
+        const result = await window.sanaosDesktop.clearPublisherToken();
+        if (!result.ok) {
+          setPublisherStatus(`ยกเลิกการเชื่อมต่อไม่สำเร็จ: ${result.message}`);
+          return;
+        }
+        await refreshPublisherStatus();
+        setPublisherStatus('ยกเลิกการเชื่อมต่อ GitHub แล้ว');
+      });
+
+      document.getElementById('publishWebsite').addEventListener('click', async event => {
+        const button = event.currentTarget;
+        button.disabled = true;
+        setPublisherStatus('กำลังเผยแพร่ข้อมูลเว็บไซต์ไปยัง GitHub...');
+        try {
+          collectCurrentFormData();
+          saveAll(false);
+          const result = await window.sanaosDesktop.publishSiteData(buildDataJs());
+          if (!result.ok) {
+            setPublisherStatus(`เผยแพร่ไม่สำเร็จ: ${result.message}`);
+            return;
+          }
+          setPublisherStatus(result.unchanged
+            ? 'ข้อมูลเหมือนกับเว็บไซต์แล้ว ไม่จำเป็นต้อง deploy ใหม่'
+            : `เผยแพร่แล้วใน commit ${result.commit.slice(0, 7)} · Netlify จะเริ่ม deploy อัตโนมัติ`);
+          showToast(result.unchanged ? 'เว็บไซต์มีข้อมูลล่าสุดอยู่แล้ว' : 'เผยแพร่ข้อมูลเว็บไซต์เรียบร้อย');
+        } catch (error) {
+          setPublisherStatus(`เผยแพร่ไม่สำเร็จ: ${error.message}`);
+        } finally {
+          button.disabled = false;
+        }
+      });
+    }
+
+    window.addEventListener('load', setupDesktopPublisher);
     window.onload = init;
   </script>
 </body>
