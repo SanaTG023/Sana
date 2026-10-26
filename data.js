@@ -177,7 +177,7 @@ const defaultTours = [
     ],
     "ctaTitle": "พร้อมเที่ยวคาซัคสถานหรือยัง?",
     "ctaDesc": "สอบถามรายละเอียด จองทริป หรือปรึกษาการเดินทาง ติดต่อเราได้เลยครับ!",
-    "status": "active",
+    "status": "inactive",
     "theme": "mountain"
   },
   {
@@ -435,7 +435,7 @@ const defaultTours = [
         "caption": "ธรรมชาติแม่กำปอง"
       }
     ],
-    "status": "active"
+    "status": "inactive"
   }
 ];
 
