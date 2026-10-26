@@ -1,3 +1,14 @@
 [[edge_functions]]
 function = "protect-admin"
-path = "/admin.html"
+path = ["/admin.html", "/api/site-data"]
+
+[[redirects]]
+from = "/api/site-data"
+to = "/.netlify/functions/site-data"
+status = 200
+force = true
+
+[[headers]]
+for = "/data.js"
+  [headers.values]
+  Cache-Control = "no-cache, no-store, must-revalidate"

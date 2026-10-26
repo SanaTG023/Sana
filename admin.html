@@ -907,7 +907,7 @@
 
   <div class="save-bar">
     <div class="save-info">
-      💡 <strong>บันทึกฉบับร่าง</strong> เก็บไว้ในเบราว์เซอร์นี้ • SanaOS สามารถเผยแพร่ข้อมูลขึ้นเว็บไซต์ได้โดยตรง
+      💡 <strong>บันทึกและซิงก์</strong> ส่งข้อมูลชุดเดียวกันจาก SanaOS และแอดมินเว็บไปยังเว็บไซต์
     </div>
     <div class="publisher-controls" id="desktopPublishControls" hidden>
       <input type="password" id="publisherToken" autocomplete="new-password" placeholder="GitHub fine-grained token" aria-label="GitHub fine-grained token">
@@ -918,8 +918,7 @@
       <span class="publisher-help" id="publisherHelp">สร้าง fine-grained token สำหรับ repo SanaTG023/Sana โดยให้สิทธิ์ Contents: Read and write แล้วเชื่อมต่อที่นี่ Token จะถูกเข้ารหัสเก็บไว้ใน Windows<br><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">สร้าง GitHub token</a></span>
     </div>
     <div class="save-actions">
-      <button type="button" class="btn btn-outline btn-sm" onclick="exportDataJs()" style="color:#111; background:#fff; border-color:#fff;">📥 ส่งออก data.js</button>
-      <button type="button" class="btn btn-primary" onclick="saveAll(false)">💾 บันทึกฉบับร่าง</button>
+      <button type="button" class="btn btn-primary" onclick="saveAll(false)">💾 บันทึกและซิงก์</button>
     </div>
   </div>
 
@@ -947,10 +946,12 @@
       currentSiteConfig = typeof siteConfig !== 'undefined' ? Object.assign({}, siteConfig) : {
         phone: "082-990-7755", lineUrl: "https://lin.ee/vhU6h6G", lineId: "@grouplek.explorer", license: "ใบอนุญาตเลขที่ 11/13245", businessHours: "จันทร์ - อาทิตย์ 08:30 - 20:00 น.", fontSize: "16px"
       };
-      try {
-        const savedCfg = localStorage.getItem('site_config');
-        if (savedCfg) currentSiteConfig = Object.assign(currentSiteConfig, JSON.parse(savedCfg));
-      } catch(e) {}
+      if (window.location.protocol === 'file:') {
+        try {
+          const savedCfg = localStorage.getItem('site_config');
+          if (savedCfg) currentSiteConfig = Object.assign(currentSiteConfig, JSON.parse(savedCfg));
+        } catch(e) {}
+      }
 
       document.getElementById('cfgPhone').value = currentSiteConfig.phone || '';
       document.getElementById('cfgLineUrl').value = currentSiteConfig.lineUrl || '';
@@ -968,10 +969,12 @@
           { icon: "🏨", title: "คัดสรรโรงแรม & อาหาร", desc: "มาตรฐานพรีเมียม สะอาด ปลอดภัย" }
         ]
       };
-      try {
-        const savedHome = localStorage.getItem('home_config');
-        if (savedHome) currentHomeConfig = Object.assign(currentHomeConfig, JSON.parse(savedHome));
-      } catch(e) {}
+      if (window.location.protocol === 'file:') {
+        try {
+          const savedHome = localStorage.getItem('home_config');
+          if (savedHome) currentHomeConfig = Object.assign(currentHomeConfig, JSON.parse(savedHome));
+        } catch(e) {}
+      }
 
       document.getElementById('hHeroBadge').value = currentHomeConfig.heroBadge || '';
       document.getElementById('hHeroTitle').value = currentHomeConfig.heroTitle || '';
@@ -982,9 +985,11 @@
 
       renderTrustItemsForm(currentHomeConfig.trustItems || []);
 
-      const saved = localStorage.getItem('all_tours_data');
-      if (saved) {
-        try { allTours = JSON.parse(saved); } catch(e) { allTours = []; }
+      if (window.location.protocol === 'file:') {
+        const saved = localStorage.getItem('all_tours_data');
+        if (saved) {
+          try { allTours = JSON.parse(saved); } catch(e) { allTours = []; }
+        }
       }
       if (!allTours.length && typeof defaultTours !== 'undefined') {
         allTours = JSON.parse(JSON.stringify(defaultTours));
@@ -1557,17 +1562,12 @@
       setTimeout(() => { t.style.display = 'none'; }, 2500);
     }
 
-    function saveAll(openPreview = false) {
-      collectCurrentFormData();
-      localStorage.setItem('all_tours_data', JSON.stringify(allTours));
-      localStorage.setItem('site_config', JSON.stringify(currentSiteConfig));
-      localStorage.setItem('home_config', JSON.stringify(currentHomeConfig));
-      renderToursTable();
-      showToast('✅ บันทึกฉบับร่างไว้ในเบราว์เซอร์นี้แล้ว');
-
-      if (openPreview) {
-        setTimeout(() => { window.open('index.html', '_blank'); }, 300);
-      }
+    function buildSiteData() {
+      return {
+        siteConfig: currentSiteConfig,
+        homeConfig: currentHomeConfig,
+        defaultTours: allTours
+      };
     }
 
     function buildDataJs() {
@@ -1578,14 +1578,66 @@
                    `if (typeof window !== "undefined") {\n  window.siteConfig = siteConfig;\n  window.homeConfig = homeConfig;\n  window.defaultTours = defaultTours;\n  window.defaultSiteData = defaultSiteData;\n}\n`;
     }
 
-    function exportDataJs() {
+    async function syncSiteData() {
+      if (window.sanaosDesktop?.isDesktop) {
+        return window.sanaosDesktop.publishSiteData(buildDataJs());
+      }
+      if (window.location.protocol === 'file:') {
+        return { ok: false, message: 'เปิดแอดมินผ่าน SanaOS หรือเว็บไซต์ Netlify เพื่อซิงก์ข้อมูล' };
+      }
+
+      const response = await fetch('/api/site-data', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildSiteData())
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.ok) {
+        throw new Error(result.message || `เซิร์ฟเวอร์ตอบกลับ ${response.status}`);
+      }
+      return result;
+    }
+
+    async function saveAll(openPreview = false) {
       collectCurrentFormData();
-      const code = buildDataJs();
-      const blob = new Blob([code], { type: 'application/javascript;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = 'data.js';
-      document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-      showToast('📥 ดาวน์โหลด data.js ใหม่เรียบร้อย!');
+      if (window.location.protocol === 'file:') {
+        try {
+          localStorage.setItem('all_tours_data', JSON.stringify(allTours));
+          localStorage.setItem('site_config', JSON.stringify(currentSiteConfig));
+          localStorage.setItem('home_config', JSON.stringify(currentHomeConfig));
+        } catch (error) {
+          console.error('Unable to save local website draft:', error);
+          showToast('บันทึกร่างในเครื่องไม่สำเร็จ');
+        }
+      }
+      renderToursTable();
+
+      let result;
+      try {
+        result = await syncSiteData();
+        if (!result.ok) throw new Error(result.message || 'ยังไม่ได้เชื่อมต่อระบบเผยแพร่');
+      } catch (error) {
+        console.error('Unable to sync website data:', error);
+        const message = window.location.protocol === 'file:'
+          ? `บันทึกในเครื่องแล้ว แต่ซิงก์ไม่สำเร็จ: ${error.message}`
+          : `ซิงก์ไปยังเว็บไซต์ไม่สำเร็จ: ${error.message}`;
+        showToast(message);
+        if (window.sanaosDesktop?.isDesktop) setPublisherStatus(message);
+        result = { ok: false, message: error.message };
+      }
+      if (result.ok) {
+        const message = result.unchanged
+          ? 'ข้อมูลตรงกับเว็บไซต์แล้ว'
+          : `ซิงก์ข้อมูลแล้ว${result.commit ? ` (${result.commit.slice(0, 7)})` : ''} · เว็บไซต์กำลังอัปเดต`;
+        showToast(`✅ ${message}`);
+        if (window.sanaosDesktop?.isDesktop) setPublisherStatus(message);
+      }
+
+      if (openPreview) {
+        setTimeout(() => { window.open('index.html', '_blank'); }, 300);
+      }
+      return result;
     }
 
     function setPublisherStatus(message) {
@@ -1611,8 +1663,7 @@
     function setupDesktopPublisher() {
       if (!window.sanaosDesktop?.isDesktop) return;
       document.getElementById('desktopPublishControls').hidden = false;
-      document.querySelector('.save-actions [onclick="exportDataJs()"]').hidden = true;
-      document.querySelector('.save-info').innerHTML = '💡 <strong>บันทึกฉบับร่าง</strong> หรือเผยแพร่การเปลี่ยนแปลงไปยังเว็บไซต์ผ่าน GitHub';
+      document.querySelector('.save-info').innerHTML = '💡 <strong>บันทึกและซิงก์</strong> อัปเดตเว็บไซต์ผ่าน GitHub และ deploy โดยอัตโนมัติ';
       refreshPublisherStatus().catch(error => setPublisherStatus(`ตรวจสอบสถานะ GitHub ไม่สำเร็จ: ${error.message}`));
 
       document.getElementById('savePublisherToken').addEventListener('click', async () => {
@@ -1651,9 +1702,7 @@
         button.disabled = true;
         setPublisherStatus('กำลังเผยแพร่ข้อมูลเว็บไซต์ไปยัง GitHub...');
         try {
-          collectCurrentFormData();
-          saveAll(false);
-          const result = await window.sanaosDesktop.publishSiteData(buildDataJs());
+          const result = await saveAll(false);
           if (!result.ok) {
             setPublisherStatus(`เผยแพร่ไม่สำเร็จ: ${result.message}`);
             return;

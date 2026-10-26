@@ -354,7 +354,7 @@
       }
       // 1. โหลดข้อมูลทัวร์ทั้งหมด
       let allTours = [];
-      const saved = localStorage.getItem('all_tours_data');
+      const saved = window.location.protocol === 'file:' ? localStorage.getItem('all_tours_data') : null;
       if (saved) {
         try { allTours = JSON.parse(saved); } catch(e) { allTours = []; }
       }
@@ -367,7 +367,7 @@
         siteName: "Nay", phone: "082-990-7755", lineUrl: "https://lin.ee/vhU6h6G", lineId: "@grouplek.explorer", license: "ใบอนุญาตเลขที่ 11/13245", website: "https://www.grouplektour.com", businessHours: "จันทร์ - อาทิตย์ 08:30 - 20:00 น.", fontSize: "16px"
       };
       try {
-        const savedCfg = localStorage.getItem('site_config');
+        const savedCfg = window.location.protocol === 'file:' ? localStorage.getItem('site_config') : null;
         if (savedCfg) cfg = Object.assign(cfg, JSON.parse(savedCfg));
       } catch(e) {}
 
@@ -393,7 +393,7 @@
         ctaDesc: "สอบถามคิวว่าง ปรึกษาเส้นทางท่องเที่ยว หรือขอโปรแกรมทัวร์ฉบับเต็ม ติดต่อทีมงานได้ทุกวันครับ"
       };
       try {
-        const savedHome = localStorage.getItem('home_config');
+        const savedHome = window.location.protocol === 'file:' ? localStorage.getItem('home_config') : null;
         if (savedHome) {
           hCfg = Object.assign(hCfg, JSON.parse(savedHome));
         }

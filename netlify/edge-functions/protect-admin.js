@@ -24,6 +24,13 @@ async function credentialsMatch(actual, expected) {
 }
 
 export default async function protectAdmin(request, context) {
+  if (new URL(request.url).pathname === '/api/site-data' && request.method !== 'POST') {
+    return new Response('Method not allowed.', {
+      status: 405,
+      headers: { Allow: 'POST', 'Cache-Control': 'no-store' }
+    });
+  }
+
   const username = Netlify.env.get('SANAOS_ADMIN_USERNAME');
   const password = Netlify.env.get('SANAOS_ADMIN_PASSWORD');
   if (!username || !password) {
